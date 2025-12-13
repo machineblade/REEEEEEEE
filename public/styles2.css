@@ -28,11 +28,9 @@ body {
   display: flex;
   justify-content: center;
   padding: 10px 16px;
-  pointer-events: none; /* lets inner container handle clicks */
 }
 
 .topbar-inner {
-  pointer-events: auto;
   width: 100%;
   max-width: 1100px;
   display: flex;
@@ -46,18 +44,26 @@ body {
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
 }
 
+/* left: SUPREME 1 + buttons */
+
+.topbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
 .topbar-left {
   font-weight: 800;
   letter-spacing: 2px;
   font-size: 0.9rem;
 }
 
-/* nav buttons */
-
 .nav-buttons {
   display: flex;
   gap: 8px;
 }
+
+/* nav buttons */
 
 .nav-button {
   padding: 6px 16px;
@@ -82,6 +88,13 @@ body {
   background: rgba(255, 255, 255, 0.22);
 }
 
+/* right: username */
+
+.topbar-user {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
 /* center content card */
 
 .content-wrapper {
@@ -89,7 +102,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 96px 16px 32px; /* top padding to clear fixed nav */
+  padding: 96px 16px 32px; /* clear fixed nav */
   box-sizing: border-box;
 }
 
