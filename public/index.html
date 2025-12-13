@@ -8,11 +8,16 @@
 <body>
   <div class="topbar">
     <div class="topbar-inner">
-      <div class="topbar-left">SUPREME 1</div>
-      <div class="nav-buttons">
-        <button class="nav-button nav-active">HOME</button>
-        <!-- more buttons later -->
+      <div class="topbar-left-group">
+        <div class="topbar-left">SUPREME 1</div>
+        <div class="nav-buttons">
+          <button class="nav-button nav-active">HOME</button>
+          <button class="nav-button">GAMES</button>
+          <button class="nav-button">ABOUT</button>
+          <!-- add more buttons here -->
+        </div>
       </div>
+      <div class="topbar-user" id="topbar-username">Username</div>
     </div>
   </div>
 
@@ -26,12 +31,15 @@
 
   <script>
     const welcome = document.getElementById('welcome');
+    const usernameEl = document.getElementById('topbar-username');
     const userJson = localStorage.getItem('user');
+
     if (!userJson) {
       window.location.href = '/login.html';
     } else {
       const user = JSON.parse(userJson);
       welcome.textContent = 'Welcome, ' + user.username + '!';
+      if (usernameEl) usernameEl.textContent = user.username;
     }
 
     document.getElementById('logout').onclick = () => {
