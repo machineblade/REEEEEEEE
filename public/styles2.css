@@ -1,0 +1,167 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  background-image: url("/images/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: #f5f5f5;
+}
+
+/* top bar */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px;
+  pointer-events: none; /* lets inner container handle clicks */
+}
+
+.topbar-inner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-radius: 999px;
+
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+}
+
+.topbar-left {
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+}
+
+/* nav buttons */
+
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-button {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f5f5f5;
+  cursor: pointer;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.nav-active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* center content card */
+
+.content-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 16px 32px; /* top padding to clear fixed nav */
+  box-sizing: border-box;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 24px;
+  border-radius: 20px;
+
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.card h2 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+}
+
+/* welcome + logout button */
+
+#welcome {
+  margin-top: 6px;
+  font-size: 1.02rem;
+  opacity: 0.9;
+}
+
+#logout {
+  margin-top: 18px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #ff4d4d, #ff8a5c);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+#logout:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.65);
+}
+
+#logout:active {
+  transform: translateY(0);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.6);
+}
+
+/* small screens */
+
+@media (max-width: 480px) {
+  .topbar-inner {
+    padding-inline: 12px;
+  }
+
+  .topbar-left {
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+  }
+
+  .nav-button {
+    padding-inline: 10px;
+    font-size: 0.7rem;
+  }
+
+  .card {
+    padding: 22px 18px;
+  }
+}
