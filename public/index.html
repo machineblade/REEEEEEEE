@@ -7,34 +7,38 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-inner">
-      <div class="topbar-left-group">
-        <div class="topbar-left">SUPREME 1</div>
-        <div class="nav-buttons">
-          <button class="nav-button nav-active">HOME</button>
-          <button class="nav-button">GAMES</button>
-          <button class="nav-button">ABOUT</button>
-        </div>
+  <div class="topbar-inner">
+    <div class="topbar-left-group">
+      <div class="topbar-left">SUPREME 1</div>
+      <div class="nav-buttons">
+        <button class="nav-button nav-active">HOME</button>
+        <button class="nav-button">GAMES</button>
+        <button class="nav-button">ABOUT</button>
       </div>
+    </div>
 
-      <!-- user dropdown on the right -->
-      <div class="user-menu">
-        <button class="user-toggle" id="user-toggle">
-          <span id="user-greeting">Welcome, Username</span>
-          <span class="user-caret">▾</span>
+    <div class="user-menu">
+      <button class="user-toggle" id="user-toggle">
+        <span id="topbar-username">Username</span>
+        <span class="user-caret">▾</span>
+      </button>
+      <div class="user-dropdown" id="user-dropdown">
+        <button class="logout-circle" id="logout" title="Log out">
+          ⟲
         </button>
-
-        <div class="user-dropdown" id="user-dropdown">
-          <button id="logout" class="logout-circle" title="Log out">
-            ⏻
-          </button>
-        </div>
+        <span class="logout-label">Log out</span>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- no center blob -->
-  <main class="content-wrapper"></main>
+<main class="content-wrapper">
+  <section class="card">
+    <h2>Home</h2>
+    <p id="welcome"></p>
+  </section>
+</main>
+
 
   <script>
     const userJson = localStorage.getItem('user');
@@ -72,3 +76,4 @@
   </script>
 </body>
 </html>
+
