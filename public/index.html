@@ -41,39 +41,43 @@
 
 
   <script>
-    const userJson = localStorage.getItem('user');
-    const userGreetingEl = document.getElementById('user-greeting');
+  const welcome = document.getElementById('welcome');
+  const usernameEl = document.getElementById('topbar-username');
+  const userJson = localStorage.getItem('user');
 
-    if (!userJson) {
-      window.location.href = '/login.html';
-    } else {
-      const user = JSON.parse(userJson);
-      if (userGreetingEl) {
-        userGreetingEl.textContent = 'Welcome, ' + user.username;
-      }
-    }
+  if (!userJson) {
+    window.location.href = '/login.html';
+  } else {
+    const user = JSON.parse(userJson);
+    welcome.textContent = 'Welcome, ' + user.username + '!';
+    if (usernameEl) usernameEl.textContent = user.username;
+  }
 
-    // dropdown toggle
-    const userToggle = document.getElementById('user-toggle');
-    const userDropdown = document.getElementById('user-dropdown');
+  const userToggle = document.getElementById('user-toggle');
+  const userDropdown = document.getElementById('user-dropdown');
 
+  if (userToggle && userDropdown) {
     userToggle.addEventListener('click', () => {
       userDropdown.classList.toggle('open');
     });
 
-    // close dropdown when clicking outside
     document.addEventListener('click', (e) => {
-      if (!userToggle.contains(e.target) && !userDropdown.contains(e.target)) {
+      if (!userDropdown.contains(e.target) && !userToggle.contains(e.target)) {
         userDropdown.classList.remove('open');
       }
     });
+  }
 
-    // logout
-    document.getElementById('logout').onclick = () => {
+  const logoutBtn = document.getElementById('logout');
+  if (logoutBtn) {
+    logoutBtn.onclick = () => {
       localStorage.removeItem('user');
       window.location.href = '/login.html';
     };
-  </script>
+  }
+</script>
+
 </body>
 </html>
+
 
