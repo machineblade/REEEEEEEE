@@ -14,34 +14,57 @@
           <button class="nav-button nav-active">HOME</button>
           <button class="nav-button">GAMES</button>
           <button class="nav-button">ABOUT</button>
-          <!-- add more buttons here -->
         </div>
       </div>
-      <div class="topbar-user" id="topbar-username">Username</div>
+
+      <!-- user dropdown on the right -->
+      <div class="user-menu">
+        <button class="user-toggle" id="user-toggle">
+          <span id="user-greeting">Welcome, Username</span>
+          <span class="user-caret">▾</span>
+        </button>
+
+        <div class="user-dropdown" id="user-dropdown">
+          <button id="logout" class="logout-circle" title="Log out">
+            ⏻
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <main class="content-wrapper">
-    <section class="card">
-      <h2>Home</h2>
-      <p id="welcome"></p>
-      <button id="logout">Log out</button>
-    </section>
-  </main>
+  <!-- no center blob -->
+  <main class="content-wrapper"></main>
 
   <script>
-    const welcome = document.getElementById('welcome');
-    const usernameEl = document.getElementById('topbar-username');
     const userJson = localStorage.getItem('user');
+    const userGreetingEl = document.getElementById('user-greeting');
 
     if (!userJson) {
       window.location.href = '/login.html';
     } else {
       const user = JSON.parse(userJson);
-      welcome.textContent = 'Welcome, ' + user.username + '!';
-      if (usernameEl) usernameEl.textContent = user.username;
+      if (userGreetingEl) {
+        userGreetingEl.textContent = 'Welcome, ' + user.username;
+      }
     }
 
+    // dropdown toggle
+    const userToggle = document.getElementById('user-toggle');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    userToggle.addEventListener('click', () => {
+      userDropdown.classList.toggle('open');
+    });
+
+    // close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!userToggle.contains(e.target) && !userDropdown.contains(e.target)) {
+        userDropdown.classList.remove('open');
+      }
+    });
+
+    // logout
     document.getElementById('logout').onclick = () => {
       localStorage.removeItem('user');
       window.location.href = '/login.html';
