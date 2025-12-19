@@ -1,0 +1,25 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #111;
+    font-family: Arial, sans-serif;
+    color: #eee;
+}
+
+#ui {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#game {
+    display: block;
+    background: radial-gradient(circle at center, #1b1b1b, #050505);
+    cursor: crosshair;
+}
