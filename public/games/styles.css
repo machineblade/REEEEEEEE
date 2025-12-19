@@ -152,26 +152,20 @@ body {
   pointer-events: auto;
 }
 
-/* circular logout button */
-
+/* red rounded rectangle button that wraps the "Log out" text */
 .logout-circle {
-  width: 38px;
-  height: 38px;
-  font-size: 1.1rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #007bff;
+  gap: 6px;                 /* space between icon (if any) and text */
+  padding: 8px 14px;        /* controls size around text */
+  background-color: #e53935;/* red */
   color: #fff;
-  padding: 10px 20px;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;       /* rounded square corners */
   box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  font-size: 0.8rem;
   cursor: pointer;
-}
-
-.logout:hover {
-  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
 }
 
 .logout-circle:hover {
@@ -185,12 +179,14 @@ body {
   box-shadow: 0 5px 14px rgba(0, 0, 0, 0.7);
 }
 
+/* keep label inline inside the red button */
 .logout-label {
   font-size: 0.8rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   opacity: 0.9;
 }
+
 
 /* content wrapper */
 
