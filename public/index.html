@@ -35,18 +35,8 @@
 <main class="content-wrapper">
 </main>
 
-
+<script src="./localcheck.js"></script>
   <script>
-  const welcome = document.getElementById('welcome');
-  const usernameEl = document.getElementById('topbar-username');
-  const userJson = localStorage.getItem('user');
-
-  if (!userJson) {
-    window.location.href = '/login.html';
-  } else {
-    const user = JSON.parse(userJson);
-    if (usernameEl) usernameEl.textContent = user.username;
-  }
 
   const userToggle = document.getElementById('user-toggle');
   const userDropdown = document.getElementById('user-dropdown');

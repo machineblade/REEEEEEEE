@@ -237,3 +237,8 @@ body {
     padding: 8px 10px;
   }
 }
+
+.slither-thumb {width: 200px;height: 200px;position: absolute;overflow: hidden;cursor: pointer;top: 100px;left: 100px;background-image: url("./slitherio/thumbnail.png");}
+.slither-thumb img {width: 100%;height: 100%;object-fit: cover;display: block;transition: transform 0.2s ease-out;}
+.slither-thumb:hover img {transform: translate(-8px, -8px);}
+.game-thumb-link {display: inline-block;text-decoration: none;}
