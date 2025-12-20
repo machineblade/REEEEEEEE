@@ -15,6 +15,7 @@ let currentUser = null;
 let contacts = [];
 let currentChat = null;
 let currentChannel = null;
+let messageCache = [];
 
 async function loadEnv() {
   const res = await fetch('/api/env');
@@ -156,12 +157,13 @@ async function loadMessages(withUser) {
   messagesEl.innerHTML = '';
   if (!withUser) {
     currentChatNameEl.textContent = 'No chat selected';
+    messageCache = [];
     return;
   }
 
   currentChatNameEl.textContent = withUser;
-  const list = await fetchMessages(withUser);
-  renderMessages(list);
+  messageCache = await fetchMessages(withUser);
+  renderMessages(messageCache);
   subscribeToRealtime(withUser);
 }
 
@@ -190,33 +192,12 @@ function subscribeToRealtime(withUser) {
           (msg.sender_username === withUser && msg.receiver_username === me);
 
         if (inThisConversation) {
-          renderMessagesFromDomPlus([msg]);
+          messageCache.push(msg);
+          renderMessages(messageCache);
         }
       }
     )
     .subscribe();
-}
-
-function renderMessagesFromDomPlus(newOnes) {
-  const me = currentUser.username;
-  const existing = [];
-
-  messagesEl.querySelectorAll('.message-row').forEach(row => {
-    const bubble = row.querySelector('.message-bubble');
-    const meta = row.querySelector('.message-meta');
-    if (!bubble || !meta) return;
-
-    const isSent = row.classList.contains('sent');
-    existing.push({
-      sender_username: isSent ? me : currentChat,
-      receiver_username: isSent ? currentChat : me,
-      content: bubble.textContent,
-      created_at: new Date().toISOString()
-    });
-  });
-
-  const combined = existing.concat(newOnes);
-  renderMessages(combined);
 }
 
 async function sendMessage(content) {
@@ -225,14 +206,15 @@ async function sendMessage(content) {
   const me = currentUser.username;
   const text = content.trim();
 
-  renderMessagesFromDomPlus([
-    {
-      sender_username: me,
-      receiver_username: currentChat,
-      content: text,
-      created_at: new Date().toISOString()
-    }
-  ]);
+  const optimistic = {
+    sender_username: me,
+    receiver_username: currentChat,
+    content: text,
+    created_at: new Date().toISOString()
+  };
+
+  messageCache.push(optimistic);
+  renderMessages(messageCache);
 
   const { error } = await supabaseClient
     .from('messages')
@@ -244,6 +226,8 @@ async function sendMessage(content) {
 
   if (error) {
     console.error('sendMessage insert error', error);
+    messageCache.pop();
+    renderMessages(messageCache);
   }
 }
 
