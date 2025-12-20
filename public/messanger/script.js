@@ -201,10 +201,10 @@ function subscribeToRealtime(withUser) {
 
         if (inThisConversation) {
           const alreadyExists = messageCache.some(
-            m => m.id === msg.id || (m.sender_username === msg.sender_username && 
-                                     m.receiver_username === msg.receiver_username && 
-                                     m.content === msg.content && 
-                                     m.created_at === msg.created_at)
+            m => m.content === msg.content && 
+                 m.sender_username === msg.sender_username && 
+                 m.receiver_username === msg.receiver_username &&
+                 !m.id  // Optimistic messages don't have an id
           );
 
           if (!alreadyExists) {
@@ -216,6 +216,7 @@ function subscribeToRealtime(withUser) {
     )
     .subscribe();
 }
+
 
 
 async function sendMessage(content) {
@@ -293,3 +294,4 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
+
