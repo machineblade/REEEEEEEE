@@ -140,6 +140,7 @@ function renderMessages(list) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+
 async function fetchMessages(withUser) {
   if (!currentUser || !withUser) return [];
   const me = currentUser.username;
@@ -199,13 +200,23 @@ function subscribeToRealtime(withUser) {
           (msg.sender_username === withUser && msg.receiver_username === me);
 
         if (inThisConversation) {
-          messageCache.push(msg);
-          renderMessages(messageCache);
+          const alreadyExists = messageCache.some(
+            m => m.id === msg.id || (m.sender_username === msg.sender_username && 
+                                     m.receiver_username === msg.receiver_username && 
+                                     m.content === msg.content && 
+                                     m.created_at === msg.created_at)
+          );
+
+          if (!alreadyExists) {
+            messageCache.push(msg);
+            renderMessages(messageCache);
+          }
         }
       }
     )
     .subscribe();
 }
+
 
 async function sendMessage(content) {
   if (!currentUser || !currentChat || !content.trim()) return;
@@ -282,4 +293,3 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
-
