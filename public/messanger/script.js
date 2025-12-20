@@ -40,8 +40,7 @@ async function loadCurrentUser() {
   if (!userJson) {
     window.location.href = '/login.html';
   }
-  currentUser = { username };
-  currentUserLabel.textContent = 'Logged in as ' + username;
+  currentUserLabel.textContent = 'Logged in as ' + JSON.parse(userJson).username;
 }
 
 // Contacts in localStorage per user
