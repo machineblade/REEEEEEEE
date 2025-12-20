@@ -229,26 +229,38 @@ async function sendMessage(content) {
     sender_username: me,
     receiver_username: currentChat,
     content: text,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    temp: true
   };
 
   messageCache.push(optimistic);
   renderMessages(messageCache);
 
-  const { error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from('messages')
     .insert({
       sender_username: me,
       receiver_username: currentChat,
       content: text
-    });
+    })
+    .select();
 
   if (error) {
     console.error('sendMessage insert error', error);
-    messageCache.pop();
+    messageCache = messageCache.filter(m => !m.temp);
+    renderMessages(messageCache);
+    return;
+  }
+
+  if (data && data.length > 0) {
+    const index = messageCache.findIndex(m => m.temp && m.content === text);
+    if (index !== -1) {
+      messageCache[index] = data[0];
+    }
     renderMessages(messageCache);
   }
 }
+
 
 menuButton.addEventListener('click', () => {
   if (sidebar.classList.contains('open')) {
@@ -294,4 +306,5 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
+
 
