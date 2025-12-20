@@ -1,0 +1,297 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #f3f4f6;
+  color: #111827;
+  height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Header */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 56px;
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.logout-button {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #4b5563;
+  background-color: transparent;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.logout-button:hover {
+  background-color: #374151;
+}
+
+.menu-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.menu-button span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background-color: #e5e7eb;
+}
+
+/* Layout */
+
+.main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 260px;
+  background-color: #111827;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #1f2937;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.sidebar-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.add-contact {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.add-contact input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #374151;
+  background-color: #020617;
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.add-contact button {
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
+  border: none;
+  background-color: #2563eb;
+  color: #f9fafb;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.add-contact button:hover {
+  background-color: #1d4ed8;
+}
+
+.contact-list {
+  list-style: none;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+
+.contact-item {
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.contact-item:hover {
+  background-color: #1f2937;
+}
+
+.contact-item.active {
+  background-color: #374151;
+}
+
+.contact-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background-color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.contact-name {
+  font-size: 0.9rem;
+}
+
+/* Chat area */
+
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #e5e7eb;
+}
+
+.chat-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #d1d5db;
+  background-color: #f9fafb;
+}
+
+.chat-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-row {
+  display: flex;
+  width: 100%;
+}
+
+.message-row.sent {
+  justify-content: flex-end;
+}
+
+.message-row.received {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.message-row.sent .message-bubble {
+  background-color: #3b82f6;
+  color: #111827;
+  border-bottom-right-radius: 0.2rem;
+}
+
+.message-row.received .message-bubble {
+  background-color: #d1d5db;
+  color: #111827;
+  border-bottom-left-radius: 0.2rem;
+}
+
+.message-meta {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+/* Input area */
+
+.input-area {
+  display: flex;
+  padding: 0.75rem;
+  border-top: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  gap: 0.5rem;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+
+.input-area button {
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: none;
+  background-color: #2563eb;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.input-area button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    z-index: 20;
+    height: calc(100% - 56px);
+    transform: translateX(-100%);
+    transition: transform 0.2s ease-out;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
