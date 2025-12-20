@@ -11,12 +11,11 @@ const currentUserLabel = document.getElementById('currentUserLabel');
 const logoutButton = document.getElementById('logoutButton');
 
 let supabaseClient = null;
-let currentUser = null;     // { username }
+let currentUser = null;
 let contacts = [];
-let currentChat = null;     // username
+let currentChat = null;
 let currentChannel = null;
 
-// Load env from backend (process.env on server)
 async function loadEnv() {
   const res = await fetch('/api/env');
   if (!res.ok) {
@@ -33,7 +32,6 @@ async function initSupabase() {
   );
 }
 
-// Read logged-in username from localStorage
 async function loadCurrentUser() {
   const userJson = localStorage.getItem('user');
   if (!userJson) {
@@ -41,12 +39,10 @@ async function loadCurrentUser() {
     return;
   }
 
-  const user = JSON.parse(userJson); // { username: "test123", ... }
+  const user = JSON.parse(userJson);
   currentUser = { username: user.username };
   currentUserLabel.textContent = 'Logged in as ' + user.username;
 }
-
-
 
 async function loadContacts() {
   if (!currentUser) return;
@@ -57,7 +53,11 @@ async function loadContacts() {
     .order('contact_username', { ascending: true });
 
   contacts = [];
-  if (!error && data) {
+  if (error) {
+    console.error('loadContacts error:', error);
+    return;
+  }
+  if (data) {
     contacts = data.map(row => row.contact_username);
   }
 }
@@ -70,20 +70,18 @@ async function addContact(username) {
   const owner = currentUser.username;
   const contact = username;
 
-  await supabaseClient.from('contacts').insert([
+  const { error } = await supabaseClient.from('contacts').insert([
     { owner_username: owner, contact_username: contact },
     { owner_username: contact, contact_username: owner }
   ]);
 
-  // Reload contacts from DB
+  if (error) {
+    console.error('addContact error:', error);
+    return;
+  }
+
   await loadContacts();
   renderContacts();
-}
-
-
-function saveContacts() {
-  if (!currentUser) return;
-  localStorage.setItem('contacts:' + currentUser.username, JSON.stringify(contacts));
 }
 
 function renderContacts() {
@@ -167,19 +165,6 @@ async function loadMessages(withUser) {
   subscribeToRealtime(withUser);
 }
 
-async function loadMessages(withUser) {
-  messagesEl.innerHTML = '';
-  if (!withUser) {
-    currentChatNameEl.textContent = 'No chat selected';
-    return;
-  }
-  currentChatNameEl.textContent = withUser;
-  const list = await fetchMessages(withUser);
-  renderMessages(list);
-  subscribeToRealtime(withUser);
-}
-
-// Supabase Realtime subscription
 function subscribeToRealtime(withUser) {
   if (currentChannel) {
     supabaseClient.removeChannel(currentChannel);
@@ -205,17 +190,13 @@ function subscribeToRealtime(withUser) {
           (msg.sender_username === withUser && msg.receiver_username === me);
 
         if (inThisConversation) {
-          // Append just this message
-          const list = [msg];
-          // Render only the new message on top of the existing DOM
-          renderMessagesFromDomPlus(list);
+          renderMessagesFromDomPlus([msg]);
         }
       }
     )
     .subscribe();
 }
 
-// Take existing DOM messages + new list and rerender
 function renderMessagesFromDomPlus(newOnes) {
   const me = currentUser.username;
   const existing = [];
@@ -238,33 +219,12 @@ function renderMessagesFromDomPlus(newOnes) {
   renderMessages(combined);
 }
 
-
-
-function appendSingleMessage(msg) {
-  const existing = [];
-  messagesEl.querySelectorAll('.message-row').forEach(row => {
-    const bubble = row.querySelector('.message-bubble');
-    const meta = row.querySelector('.message-meta');
-    if (!bubble || !meta) return;
-    const isSent = row.classList.contains('sent');
-    existing.push({
-      sender_username: isSent ? currentUser.username : currentChat,
-      receiver_username: isSent ? currentChat : currentUser.username,
-      content: bubble.textContent,
-      created_at: new Date().toISOString()
-    });
-  });
-  existing.push(msg);
-  renderMessages(existing);
-}
-
 async function sendMessage(content) {
   if (!currentUser || !currentChat || !content.trim()) return;
 
   const me = currentUser.username;
   const text = content.trim();
 
-  // Optimistic add
   renderMessagesFromDomPlus([
     {
       sender_username: me,
@@ -287,9 +247,6 @@ async function sendMessage(content) {
   }
 }
 
-
-// UI events
-
 menuButton.addEventListener('click', () => {
   if (sidebar.classList.contains('open')) {
     sidebar.classList.remove('open');
@@ -304,7 +261,6 @@ addContactButton.addEventListener('click', () => {
   newContactInput.value = '';
   addContact(name);
 });
-
 
 contactList.addEventListener('click', e => {
   const item = e.target.closest('.contact-item');
@@ -324,16 +280,14 @@ messageForm.addEventListener('submit', e => {
 });
 
 logoutButton.addEventListener('click', () => {
-  localStorage.removeItem('username');
+  localStorage.removeItem('user');
   window.location.href = '/login.html';
 });
-
-// Init
 
 (async function init() {
   await initSupabase();
   await loadCurrentUser();
   if (!currentUser) return;
-  loadContacts();
+  await loadContacts();
   renderContacts();
 })();
