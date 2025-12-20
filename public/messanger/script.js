@@ -108,8 +108,14 @@ function renderContacts() {
 
 function renderMessages(list) {
   messagesEl.innerHTML = '';
-  list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  list.forEach(msg => {
+  
+  const sorted = [...list].sort((a, b) => {
+    const timeA = new Date(a.created_at).getTime();
+    const timeB = new Date(b.created_at).getTime();
+    return timeA - timeB;
+  });
+  
+  sorted.forEach(msg => {
     const row = document.createElement('div');
     const isSent = msg.sender_username === currentUser.username;
     row.className = 'message-row ' + (isSent ? 'sent' : 'received');
@@ -130,6 +136,7 @@ function renderMessages(list) {
     row.appendChild(wrapper);
     messagesEl.appendChild(row);
   });
+  
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
@@ -275,3 +282,4 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
+
