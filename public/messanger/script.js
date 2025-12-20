@@ -35,10 +35,10 @@ async function initSupabase() {
 
 // Read logged-in username from localStorage
 async function loadCurrentUser() {
-  const username = localStorage.getItem('username');
-  if (!username) {
+  const userJson = localStorage.getItem('user');
+
+  if (!userJson) {
     window.location.href = '/login.html';
-    return;
   }
   currentUser = { username };
   currentUserLabel.textContent = 'Logged in as ' + username;
