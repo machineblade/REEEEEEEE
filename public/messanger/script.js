@@ -36,12 +36,16 @@ async function initSupabase() {
 // Read logged-in username from localStorage
 async function loadCurrentUser() {
   const userJson = localStorage.getItem('user');
-
   if (!userJson) {
     window.location.href = '/login.html';
+    return;
   }
-  currentUserLabel.textContent = 'Logged in as ' + JSON.parse(userJson).username;
+
+  const user = JSON.parse(userJson); // expects { username: "..." }
+  currentUser = { username: user.username };   // <== important
+  currentUserLabel.textContent = 'Logged in as ' + user.username;
 }
+
 
 // Contacts in localStorage per user
 function loadContacts() {
