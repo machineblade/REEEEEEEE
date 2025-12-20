@@ -41,20 +41,45 @@ async function loadCurrentUser() {
     return;
   }
 
-  const user = JSON.parse(userJson); // expects { username: "..." }
-  currentUser = { username: user.username };   // <== important
+  const user = JSON.parse(userJson); // { username: "test123", ... }
+  currentUser = { username: user.username };
   currentUserLabel.textContent = 'Logged in as ' + user.username;
 }
 
 
-// Contacts in localStorage per user
-function loadContacts() {
+
+async function loadContacts() {
   if (!currentUser) return;
-  const stored = localStorage.getItem('contacts:' + currentUser.username);
-  if (stored) {
-    contacts = JSON.parse(stored);
+  const { data, error } = await supabaseClient
+    .from('contacts')
+    .select('contact_username')
+    .eq('owner_username', currentUser.username)
+    .order('contact_username', { ascending: true });
+
+  contacts = [];
+  if (!error && data) {
+    contacts = data.map(row => row.contact_username);
   }
 }
+
+async function addContact(username) {
+  if (!currentUser) return;
+  if (!username || username === currentUser.username) return;
+  if (contacts.includes(username)) return;
+
+  const owner = currentUser.username;
+  const contact = username;
+
+  await supabaseClient.from('contacts').insert([
+    { owner_username: owner, contact_username: contact },
+    { owner_username: contact, contact_username: owner }
+  ]);
+
+  // Reload contacts from DB
+  await loadContacts();
+  renderContacts();
+}
+
 
 function saveContacts() {
   if (!currentUser) return;
@@ -111,19 +136,35 @@ function renderMessages(list) {
 
 async function fetchMessages(withUser) {
   if (!currentUser || !withUser) return [];
+  const me = currentUser.username;
+
   const { data, error } = await supabaseClient
     .from('messages')
     .select('*')
     .or(
-      `and(sender_username.eq.${currentUser.username},receiver_username.eq.${withUser}),` +
-      `and(sender_username.eq.${withUser},receiver_username.eq.${currentUser.username})`
+      `and(sender_username.eq.${me},receiver_username.eq.${withUser}),` +
+      `and(sender_username.eq.${withUser},receiver_username.eq.${me})`
     )
     .order('created_at', { ascending: true });
 
   if (error) {
+    console.error('fetchMessages error', error);
     return [];
   }
   return data || [];
+}
+
+async function loadMessages(withUser) {
+  messagesEl.innerHTML = '';
+  if (!withUser) {
+    currentChatNameEl.textContent = 'No chat selected';
+    return;
+  }
+
+  currentChatNameEl.textContent = withUser;
+  const list = await fetchMessages(withUser);
+  renderMessages(list);
+  subscribeToRealtime(withUser);
 }
 
 async function loadMessages(withUser) {
@@ -146,8 +187,10 @@ function subscribeToRealtime(withUser) {
   }
   if (!currentUser || !withUser) return;
 
+  const me = currentUser.username;
+
   currentChannel = supabaseClient
-    .channel('messages:' + currentUser.username + ':' + withUser)
+    .channel('messages:' + me + ':' + withUser)
     .on(
       'postgres_changes',
       {
@@ -157,18 +200,45 @@ function subscribeToRealtime(withUser) {
       },
       payload => {
         const msg = payload.new;
-        const mine = msg.sender_username === currentUser.username;
         const inThisConversation =
-          (msg.sender_username === withUser && msg.receiver_username === currentUser.username) ||
-          (msg.sender_username === currentUser.username && msg.receiver_username === withUser);
+          (msg.sender_username === me && msg.receiver_username === withUser) ||
+          (msg.sender_username === withUser && msg.receiver_username === me);
 
-        if (inThisConversation || mine) {
-          appendSingleMessage(msg);
+        if (inThisConversation) {
+          // Append just this message
+          const list = [msg];
+          // Render only the new message on top of the existing DOM
+          renderMessagesFromDomPlus(list);
         }
       }
     )
     .subscribe();
 }
+
+// Take existing DOM messages + new list and rerender
+function renderMessagesFromDomPlus(newOnes) {
+  const me = currentUser.username;
+  const existing = [];
+
+  messagesEl.querySelectorAll('.message-row').forEach(row => {
+    const bubble = row.querySelector('.message-bubble');
+    const meta = row.querySelector('.message-meta');
+    if (!bubble || !meta) return;
+
+    const isSent = row.classList.contains('sent');
+    existing.push({
+      sender_username: isSent ? me : currentChat,
+      receiver_username: isSent ? currentChat : me,
+      content: bubble.textContent,
+      created_at: new Date().toISOString()
+    });
+  });
+
+  const combined = existing.concat(newOnes);
+  renderMessages(combined);
+}
+
+
 
 function appendSingleMessage(msg) {
   const existing = [];
@@ -191,24 +261,32 @@ function appendSingleMessage(msg) {
 async function sendMessage(content) {
   if (!currentUser || !currentChat || !content.trim()) return;
 
+  const me = currentUser.username;
   const text = content.trim();
 
-  const optimistic = {
-    sender_username: currentUser.username,
-    receiver_username: currentChat,
-    content: text,
-    created_at: new Date().toISOString()
-  };
-  appendSingleMessage(optimistic);
+  // Optimistic add
+  renderMessagesFromDomPlus([
+    {
+      sender_username: me,
+      receiver_username: currentChat,
+      content: text,
+      created_at: new Date().toISOString()
+    }
+  ]);
 
-  await supabaseClient
+  const { error } = await supabaseClient
     .from('messages')
     .insert({
-      sender_username: currentUser.username,
+      sender_username: me,
       receiver_username: currentChat,
       content: text
     });
+
+  if (error) {
+    console.error('sendMessage insert error', error);
+  }
 }
+
 
 // UI events
 
@@ -222,15 +300,11 @@ menuButton.addEventListener('click', () => {
 
 addContactButton.addEventListener('click', () => {
   if (!currentUser) return;
-  const username = newContactInput.value.trim();
-  if (!username || username === currentUser.username) return;
-  if (!contacts.includes(username)) {
-    contacts.push(username);
-    saveContacts();
-    renderContacts();
-  }
+  const name = newContactInput.value.trim();
   newContactInput.value = '';
+  addContact(name);
 });
+
 
 contactList.addEventListener('click', e => {
   const item = e.target.closest('.contact-item');
