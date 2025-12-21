@@ -16,6 +16,7 @@ let contacts = [];
 let currentChat = null;
 let currentChannel = null;
 let messageCache = [];
+let pollInterval = null;
 
 async function loadEnv() {
   const res = await fetch('/api/env');
@@ -140,7 +141,6 @@ function renderMessages(list) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-
 async function fetchMessages(withUser) {
   if (!currentUser || !withUser) return [];
   const me = currentUser.username;
@@ -161,11 +161,55 @@ async function fetchMessages(withUser) {
   return data || [];
 }
 
+function subscribeToRealtime(withUser) {
+  if (currentChannel) {
+    supabaseClient.removeChannel(currentChannel);
+    currentChannel = null;
+  }
+  if (!currentUser || !withUser) return;
+
+  const me = currentUser.username;
+
+  currentChannel = supabaseClient
+    .channel('messages:' + me + ':' + withUser)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages'
+      },
+      payload => {
+        const msg = payload.new;
+        const inThisConversation =
+          (msg.sender_username === me && msg.receiver_username === withUser) ||
+          (msg.sender_username === withUser && msg.receiver_username === me);
+
+        if (inThisConversation) {
+          const alreadyExists = messageCache.some(
+            m => (m.id === msg.id) || 
+                 (m.temp && m.content === msg.content && m.sender_username === msg.sender_username)
+          );
+
+          if (!alreadyExists) {
+            messageCache.push(msg);
+            renderMessages(messageCache);
+            console.log('New message received via Realtime:', msg);
+          }
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log('Realtime subscription status:', status);
+    });
+}
+
 async function loadMessages(withUser) {
   messagesEl.innerHTML = '';
   if (!withUser) {
     currentChatNameEl.textContent = 'No chat selected';
     messageCache = [];
+    if (pollInterval) clearInterval(pollInterval);
     return;
   }
 
@@ -173,6 +217,20 @@ async function loadMessages(withUser) {
   messageCache = await fetchMessages(withUser);
   renderMessages(messageCache);
   subscribeToRealtime(withUser);
+
+  if (pollInterval) clearInterval(pollInterval);
+  let lastMessageCount = messageCache.length;
+  pollInterval = setInterval(async () => {
+    if (!currentChat || currentChat !== withUser) return;
+    
+    const fresh = await fetchMessages(withUser);
+    if (fresh.length > lastMessageCount) {
+      messageCache = fresh;
+      renderMessages(messageCache);
+      lastMessageCount = fresh.length;
+      console.log('New messages fetched via polling:', fresh.length - lastMessageCount);
+    }
+  }, 2000);
 }
 
 async function sendMessage(content) {
@@ -218,56 +276,6 @@ async function sendMessage(content) {
 
   await new Promise(resolve => setTimeout(resolve, 50));
 }
-
-
-
-
-async function sendMessage(content) {
-  if (!currentUser || !currentChat || !content.trim()) return;
-
-  const me = currentUser.username;
-  const text = content.trim();
-
-  const optimistic = {
-    sender_username: me,
-    receiver_username: currentChat,
-    content: text,
-    created_at: new Date().toISOString(),
-    temp: true
-  };
-
-  messageCache.push(optimistic);
-  renderMessages(messageCache);
-
-  const { data, error } = await supabaseClient
-    .from('messages')
-    .insert({
-      sender_username: me,
-      receiver_username: currentChat,
-      content: text
-    })
-    .select();
-
-  if (error) {
-    console.error('sendMessage insert error', error);
-    messageCache = messageCache.filter(m => !m.temp);
-    renderMessages(messageCache);
-    return;
-  }
-
-  if (data && data.length > 0) {
-    const index = messageCache.findIndex(m => m.temp && m.content === text);
-    if (index !== -1) {
-      messageCache[index] = data[0];
-    }
-    renderMessages(messageCache);
-  }
-
-  await new Promise(resolve => setTimeout(resolve, 50));
-}
-
-
-
 
 menuButton.addEventListener('click', () => {
   if (sidebar.classList.contains('open')) {
@@ -313,7 +321,3 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
-
-
-
-
