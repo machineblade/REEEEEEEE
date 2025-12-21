@@ -175,47 +175,50 @@ async function loadMessages(withUser) {
   subscribeToRealtime(withUser);
 }
 
-function subscribeToRealtime(withUser) {
-  if (currentChannel) {
-    supabaseClient.removeChannel(currentChannel);
-    currentChannel = null;
-  }
-  if (!currentUser || !withUser) return;
+async function sendMessage(content) {
+  if (!currentUser || !currentChat || !content.trim()) return;
 
   const me = currentUser.username;
+  const text = content.trim();
 
-  currentChannel = supabaseClient
-    .channel('messages:' + me + ':' + withUser)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages'
-      },
-      payload => {
-        const msg = payload.new;
-        const inThisConversation =
-          (msg.sender_username === me && msg.receiver_username === withUser) ||
-          (msg.sender_username === withUser && msg.receiver_username === me);
+  const optimistic = {
+    sender_username: me,
+    receiver_username: currentChat,
+    content: text,
+    created_at: new Date().toISOString(),
+    temp: true
+  };
 
-        if (inThisConversation) {
-          const alreadyExists = messageCache.some(
-            m => m.content === msg.content && 
-                 m.sender_username === msg.sender_username && 
-                 m.receiver_username === msg.receiver_username &&
-                 !m.id  // Optimistic messages don't have an id
-          );
+  messageCache.push(optimistic);
+  renderMessages(messageCache);
 
-          if (!alreadyExists) {
-            messageCache.push(msg);
-            renderMessages(messageCache);
-          }
-        }
-      }
-    )
-    .subscribe();
+  const { data, error } = await supabaseClient
+    .from('messages')
+    .insert({
+      sender_username: me,
+      receiver_username: currentChat,
+      content: text
+    })
+    .select();
+
+  if (error) {
+    console.error('sendMessage insert error', error);
+    messageCache = messageCache.filter(m => !m.temp);
+    renderMessages(messageCache);
+    return;
+  }
+
+  if (data && data.length > 0) {
+    const index = messageCache.findIndex(m => m.temp && m.content === text);
+    if (index !== -1) {
+      messageCache[index] = data[0];
+    }
+    renderMessages(messageCache);
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 50));
 }
+
 
 
 
@@ -265,6 +268,7 @@ async function sendMessage(content) {
 
 
 
+
 menuButton.addEventListener('click', () => {
   if (sidebar.classList.contains('open')) {
     sidebar.classList.remove('open');
@@ -309,6 +313,7 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
+
 
 
 
