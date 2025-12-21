@@ -259,7 +259,10 @@ async function sendMessage(content) {
     }
     renderMessages(messageCache);
   }
+
+  await new Promise(resolve => setTimeout(resolve, 50));
 }
+
 
 
 menuButton.addEventListener('click', () => {
@@ -306,5 +309,6 @@ logoutButton.addEventListener('click', () => {
   await loadContacts();
   renderContacts();
 })();
+
 
 
