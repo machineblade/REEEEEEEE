@@ -8,19 +8,8 @@ export default async function handler(req, res) {
         .json({ result: 'error', error: 'Use POST for login' });
     }
 
-    let body = '';
-    for await (const chunk of req) body += chunk;
+    const { username, password } = req.body;
 
-    let parsed;
-    try {
-      parsed = JSON.parse(body);
-    } catch {
-      return res
-        .status(400)
-        .json({ result: 'error', error: 'Invalid JSON body' });
-    }
-
-    const { username, password } = parsed;
     if (!username || !password) {
       return res
         .status(400)
