@@ -8,7 +8,21 @@ export default async function handler(req, res) {
         .json({ result: 'error', error: 'Use POST for login' });
     }
 
-    const { username, password } = req.body;
+    let parsed;
+
+    if (typeof req.body === 'string') {
+      try {
+        parsed = JSON.parse(req.body);
+      } catch {
+        return res
+          .status(400)
+          .json({ result: 'error', error: 'Invalid JSON body' });
+      }
+    } else {
+      parsed = req.body;
+    }
+
+    const { username, password } = parsed;
 
     if (!username || !password) {
       return res
@@ -27,7 +41,7 @@ export default async function handler(req, res) {
       console.error('Supabase login error:', error);
       return res
         .status(500)
-        .json({ result: 'error', error: 'DB error while logging in' });
+        .json({ result: 'error', error: 'DB error while logging in: ' + error.message });
     }
 
     if (!data || data.password !== password) {
@@ -44,6 +58,6 @@ export default async function handler(req, res) {
     console.error('Login error:', err);
     return res
       .status(500)
-      .json({ result: 'error', error: 'Server error while logging in' });
+      .json({ result: 'error', error: 'Server error: ' + err.message });
   }
 }
