@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mini Dash + Level Editor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #menu {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            background: radial-gradient(ellipse at 50% 40%, #1a003a 0%, #000010 70%);
+            overflow: hidden;
+        }
+
+        /* Animated grid lines */
+        #menu::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 0, 255, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 255, 0.07) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridScroll 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridScroll {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 60px 60px;
+            }
+        }
+
+        .menu-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow:
+                0 0 10px #0ff,
+                0 0 30px #0ff,
+                0 0 60px #0ff,
+                0 0 100px #f0f;
+            animation: pulse 2.5s ease-in-out infinite;
+            margin-bottom: 8px;
+            z-index: 1;
+        }
+
+        .menu-subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            letter-spacing: 6px;
+            color: #f0f;
+            text-shadow: 0 0 10px #f0f;
+            margin-bottom: 50px;
+            z-index: 1;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
+            }
+
+            50% {
+                text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f;
+            }
+        }
+
+        .menu-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+            z-index: 1;
+        }
+
+        .menu-btn {
+            padding: 14px 36px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: transparent;
+            border: 2px solid #0ff;
+            color: #0ff;
+            cursor: pointer;
+            position: relative;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            transition: all 0.2s ease;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #0ff;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.2s ease;
+            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+        }
+
+        .menu-btn:hover::before {
+            transform: scaleX(1);
+        }
+
+        .menu-btn:hover {
+            color: #000;
+            border-color: #0ff;
+        }
+
+        .menu-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-btn.pink {
+            border-color: #f0f;
+            color: #f0f;
+        }
+
+        .menu-btn.pink::before {
+            background: #f0f;
+        }
+
+        .menu-btn.pink:hover {
+            color: #000;
+        }
+
+        .menu-section {
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 340px;
+        }
+
+        .section-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 4px;
+            color: #f0f;
+            text-shadow: 0 0 8px #f0f;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .import-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        #levelInput {
+            flex: 1;
+            padding: 10px 14px;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid #0ff;
+            color: #0ff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+
+        #levelInput::placeholder {
+            color: rgba(0, 255, 255, 0.3);
+        }
+
+        .import-btn {
+            padding: 10px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+            background: transparent;
+            border: 1px solid #0ff;
+            color: #0ff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .import-btn:hover {
+            background: #0ff;
+            color: #000;
+        }
+
+        #customLevels {
+            width: 100%;
+            max-height: 140px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        #customLevels::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #customLevels::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #customLevels::-webkit-scrollbar-thumb {
+            background: #f0f;
+            border-radius: 2px;
+        }
+
+        #customLevels button {
+            width: 100%;
+            padding: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            background: rgba(255, 0, 255, 0.05);
+            border: 1px solid #f0f;
+            color: #f0f;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #customLevels button:hover {
+            background: #f0f;
+            color: #000;
+        }
+
+        .divider {
+            width: 300px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #f0f, transparent);
+            margin: 24px 0;
+            z-index: 1;
+        }
+
+        /* Floating particles via CSS */
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: #0ff;
+            box-shadow: 0 0 6px #0ff;
+            animation: float linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(100vh) translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-10vh) translateX(40px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="game"></canvas>
+    <div id="menu">
+        <!-- Floating particles -->
+        <div class="particle"
+            style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:25%;animation-duration:8s;animation-delay:1s"></div>
+        <div class="particle"
+            style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:60%;animation-duration:9s;animation-delay:0.5s"></div>
+        <div class="particle"
+            style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:90%;animation-duration:6s;animation-delay:1.5s"></div>
+
+        <div class="menu-title">Mini Dash</div>
+        <div class="menu-subtitle">Geometry Rush</div>
+
+        <div class="menu-buttons">
+            <button class="menu-btn" onclick="startLevel(0)"><span>Level 1</span></button>
+            <button class="menu-btn" onclick="startLevel(1)"><span>Level 2</span></button>
+            <button class="menu-btn pink" onclick="openEditor()"><span>Editor</span></button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="menu-section">
+            <div class="section-label">Import Level</div>
+            <div class="import-row">
+                <input id="levelInput" placeholder="Paste level string...">
+                <button class="import-btn" onclick="importLevel()">Add</button>
+            </div>
+
+            <div class="section-label" style="margin-top:12px">Custom Levels</div>
+            <div id="customLevels"></div>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingQuality = "low";
+        ctx.imageSmoothingEnabled = false;
+
+        // Sprites for block, spike, jumppad
+        const blockSprite = new Image();
+        blockSprite.src = "./sprites/block.png";
+        const jumppadsprite = new Image();
+        jumppadsprite.src = "./sprites/jumppad.png";
+        const spikesprite = new Image();
+        spikesprite.src = "./sprites/spike.png";
+        const cubeSprite = new Image();
+        cubeSprite.src = "./sprites/cubes/cube1.png";
+        const shipSprite = new Image();
+        shipSprite.src = "./sprites/ship.png";
+
+        // Ship portal — drawn with canvas so it looks nice
+        function drawShipPortal(x, y, w, h) {
+            // Glowing border
+            ctx.shadowColor = "#0ff";
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = "#0ff";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            // Translucent fill
+            ctx.fillStyle = "rgba(0,255,255,0.10)";
+            ctx.fillRect(x, y, w, h);
+            // Ship icon in centre
+            let cx = x + w / 2, cy = y + h / 2;
+            ctx.fillStyle = "#0ff";
+            ctx.beginPath();
+            ctx.moveTo(cx + 12, cy);
+            ctx.lineTo(cx - 9, cy - 7);
+            ctx.lineTo(cx - 5, cy);
+            ctx.lineTo(cx - 9, cy + 7);
+            ctx.closePath();
+            ctx.fill();
+            // Label
+            ctx.fillStyle = "#0ff";
+            ctx.font = "bold 9px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("SHIP", cx, y + h - 6);
+            ctx.textAlign = "left";
+        }
+
+        // Ship player — drawn with canvas
+        function drawShip(px, py, w, h, tilt) {
+            ctx.save();
+            ctx.translate(px + w / 2, py + h / 2);
+            ctx.rotate(tilt * Math.PI / 180);
+            // Main body
+            ctx.fillStyle = "#0ff";
+            ctx.beginPath();
+            ctx.moveTo(w / 2, 0);
+            ctx.lineTo(-w / 2 + 8, -h / 2 + 6);
+            ctx.lineTo(-w / 2 + 8, h / 2 - 6);
+            ctx.closePath();
+            ctx.fill();
+            // Top wing
+            ctx.fillStyle = "#00aaaa";
+            ctx.beginPath();
+            ctx.moveTo(-w / 2 + 8, -6);
+            ctx.lineTo(-w / 2 - 6, -h / 2 + 2);
+            ctx.lineTo(-w / 2 + 8, 0);
+            ctx.closePath();
+            ctx.fill();
+            // Bottom wing
+            ctx.beginPath();
+            ctx.moveTo(-w / 2 + 8, 6);
+            ctx.lineTo(-w / 2 - 6, h / 2 - 2);
+            ctx.lineTo(-w / 2 + 8, 0);
+            ctx.closePath();
+            ctx.fill();
+            // Cockpit
+            ctx.fillStyle = "#003333";
+            ctx.beginPath();
+            ctx.ellipse(4, 0, 9, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Engine glow
+            ctx.shadowColor = "#f80";
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = "#f80";
+            ctx.beginPath();
+            ctx.ellipse(-w / 2 + 8, 0, 4, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+
+        let spaceHeld = false;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        const SPEED = 6;
+        const SIZE = 50;
+        const GRAVITY = 0.8;
+        const GROUND_Y = 100;
+        const ROT_SPEED = 6;
+        let mode = "cube";
+        const MAX_JUMP_HEIGHT = SIZE * 2.5;
+
+        let state = "menu";
+        let scrollX = 0;
+        let player;
+        let levelObjects = [];
+        let particles = [];
+        let jumpBuffer = 0;
+        let restartTimer = 0;
+        let finishX = 0;
+        let winTimer = 0;
+
+        const levels = [
+            "block 350 -3, block 450 47, block 500 47, spike 400 -3, block 600 97",
+            "block 400 -3, block 450 -3, spike 500 -3, spike 550 -3"
+        ];
+        const customLevels = [];
+
+        function parseLevel(text) {
+            let objects = text.split(",").map(o => {
+                let [type, x, y, r] = o.trim().split(" ");
+                return { type, x: parseInt(x), y: parseInt(y), rotation: parseInt(r) || 0 };
+            });
+            let maxX = 0;
+            for (let obj of objects) maxX = Math.max(maxX, obj.x);
+            finishX = maxX + 150;
+            return objects;
+        }
+
+        function goToMenu() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            state = "menu";
+            scrollX = 0;
+            levelObjects = [];
+            particles = [];
+            player = null;
+            winTimer = 0;
+            restartTimer = 0;
+            jumpBuffer = 0;
+            document.getElementById("menu").style.display = "flex";
+        }
+
+        function startLevel(i) {
+            document.getElementById("menu").style.display = "none";
+            state = "game";
+            scrollX = 0;
+            winTimer = 0;
+            restartTimer = 0;
+            levelObjects = parseLevel(levels[i]);
+            spawnPlayer();
+        }
+
+        function startCustomLevel(i) {
+            document.getElementById("menu").style.display = "none";
+            state = "game";
+            scrollX = 0;
+            winTimer = 0;
+            restartTimer = 0;
+            levelObjects = parseLevel(customLevels[i]);
+            spawnPlayer();
+        }
+
+        function spawnPlayer() {
+            player = {
+                x: 150,
+                y: canvas.height - GROUND_Y - SIZE,
+                vy: 0,
+                grounded: true,
+                rotation: 0,
+                visible: true
+            };
+            mode = "cube";
+            jumpBuffer = 0;
+        }
+
+        function importLevel() {
+            let txt = document.getElementById("levelInput").value.trim();
+            if (!txt) return;
+            customLevels.push(txt);
+            document.getElementById("levelInput").value = "";
+            updateCustomLevels();
+        }
+
+        function updateCustomLevels() {
+            let div = document.getElementById("customLevels");
+            div.innerHTML = "";
+            customLevels.forEach((lvl, i) => {
+                let b = document.createElement("button");
+                b.textContent = "Level " + (i + 3);
+                b.style.display = "block";
+                b.onclick = () => startCustomLevel(i);
+                div.appendChild(b);
+            });
+        }
+
+        function spawnParticles(x, y) {
+            for (let i = 0; i < 40; i++) {
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 8 + 2;
+                particles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 60
+                });
+            }
+        }
+
+        function die() {
+            if (state !== "game") return;
+            spawnParticles(player.x + SIZE / 2, player.y + SIZE / 2);
+            player.visible = false;
+            state = "dead";
+            restartTimer = 120;
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.code === "Space") {
+                spaceHeld = true;
+                if (state === "game" && mode === "cube") jumpBuffer = 2;
+            }
+            if (e.code === "Escape") {
+                goToMenu();
+            }
+            if (state === "editor") editorKey(e);
+        });
+
+        document.addEventListener("keyup", e => {
+            if (e.code === "Space") spaceHeld = false;
+        });
+
+        document.addEventListener("mousedown", e => {
+            if (state === "game") jumpBuffer = 2;
+            if (state === "editor") editorClick(e);
+        });
+
+        document.addEventListener("contextmenu", e => {
+            if (state === "editor") {
+                e.preventDefault();
+                editorDelete(e);
+            }
+        });
+
+        function update() {
+            if (state === "dead") {
+                restartTimer--;
+                if (restartTimer <= 0) {
+                    spawnPlayer();
+                    scrollX = 0;
+                    state = "game";
+                }
+            }
+
+            if (state === "win") {
+                winTimer--;
+                if (winTimer <= 0) {
+                    goToMenu();
+                    return;
+                }
+            }
+
+            for (let p of particles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2;
+                p.life--;
+            }
+            particles = particles.filter(p => p.life > 0);
+
+            if (state !== "game") return;
+
+            scrollX += SPEED;
+            if (jumpBuffer > 0) jumpBuffer--;
+
+            let jumpForce = Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT);
+
+            if (mode === "cube") {
+                if (jumpBuffer > 0 && player.grounded) {
+                    player.vy = -jumpForce;
+                    jumpBuffer = 0;
+                }
+                player.vy += GRAVITY;
+                player.y += player.vy;
+            }
+
+            if (mode === "ship") {
+                const SHIP_ACCEL = 0.9;
+                const SHIP_GRAVITY = 0.6;
+                const SHIP_MAX_UP = -10;
+                const SHIP_MAX_DOWN = 10;
+                const DAMPING = 0.92;
+
+                if (spaceHeld) {
+                    player.vy -= SHIP_ACCEL;
+                } else {
+                    player.vy += SHIP_GRAVITY;
+                }
+                player.vy *= DAMPING;
+                if (player.vy < SHIP_MAX_UP) player.vy = SHIP_MAX_UP;
+                if (player.vy > SHIP_MAX_DOWN) player.vy = SHIP_MAX_DOWN;
+                player.y += player.vy;
+
+                // Tilt ship nose up/down based on velocity
+                player.rotation = Math.max(-25, Math.min(25, player.vy * 2.5));
+
+                // Ceiling clamp
+                if (player.y <= 0) { player.y = 0; player.vy = 0; }
+            }
+
+            let landed = false;
+            let ground = canvas.height - GROUND_Y;
+            if (player.y + SIZE >= ground) {
+                player.y = ground - SIZE;
+                player.vy = 0;
+                landed = true;
+            }
+
+            for (let obj of levelObjects) {
+                let x = obj.x - scrollX;
+                let y = canvas.height - GROUND_Y - obj.y - 50;
+
+                // Hitbox: cube = full 50x50, ship = 33x15 with 7x18 offset
+                let hx = mode === "ship" ? player.x + 7 : player.x;
+                let hy = mode === "ship" ? player.y + 18 : player.y;
+                let hw = mode === "ship" ? 33 : SIZE;
+                let hh = mode === "ship" ? 15 : SIZE;
+
+                if (obj.type === "block") {
+                    let overlapX = hx + hw > x && hx < x + 50;
+                    let prevBottom = (hy + hh) - player.vy;
+                    let playerBottom = hy + hh;
+                    if (overlapX && prevBottom <= y && playerBottom >= y) {
+                        player.y = y - hh - (mode === "ship" ? 18 : 0);
+                        player.vy = 0;
+                        landed = true;
+                    } else if (overlapX && hy + hh > y && hy < y + 50) {
+                        die();
+                    }
+                }
+
+                if (obj.type === "shipportal") {
+                    let overlap =
+                        hx + hw > x && hx < x + 50 &&
+                        hy + hh > y && hy < y + 100;
+                    if (overlap) mode = "ship";
+                }
+
+                if (obj.type === "spike") {
+                    let spikeHitX = x + 21, spikeHitY = y + 22;
+                    let overlap =
+                        hx + hw > spikeHitX && hx < spikeHitX + 6 &&
+                        hy + hh > spikeHitY && hy < spikeHitY + 13;
+                    if (overlap) die();
+                }
+
+                if (obj.type === "jumppad") {
+                    if (
+                        hx + hw > x && hx < x + 19 &&
+                        hy + hh > y + 35 && hy < y + 40
+                    ) {
+                        player.vy = -Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT) * 1.4;
+                        spawnParticles(player.x + SIZE / 2, player.y + SIZE);
+                    }
+                }
+            }
+
+            player.grounded = landed;
+
+            // Rotation: only spin in cube mode
+            if (mode === "cube") {
+                if (!player.grounded) player.rotation += ROT_SPEED;
+                else player.rotation = Math.round(player.rotation / 90) * 90;
+            }
+
+            if (player.x + scrollX > finishX) {
+                player.visible = false;
+                state = "win";
+                winTimer = 120;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (state === "menu") return;
+
+            if (state === "editor") {
+                drawEditor();
+                return;
+            }
+
+            // Background
+            ctx.fillStyle = "#0a0015";
+            ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_Y);
+
+            // Ground
+            ctx.fillStyle = "#0d0030";
+            ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, GROUND_Y);
+
+            // Neon ground line
+            ctx.shadowColor = "#f0f";
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = "#f0f";
+            ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, 3);
+            ctx.shadowBlur = 0;
+
+            // Level objects
+            for (let obj of levelObjects) {
+                let x = Math.floor(obj.x - scrollX);
+                let y = Math.floor(canvas.height - GROUND_Y - obj.y - 50);
+
+                ctx.save();
+                ctx.translate(x + 25, y + 25);
+                ctx.rotate(((obj.rotation || 0) * Math.PI) / 180);
+                ctx.translate(-25, -25);
+                if (obj.type === "block") ctx.drawImage(blockSprite, 0, 0, 50, 50);
+                if (obj.type === "spike") ctx.drawImage(spikesprite, 0, 0, 50, 50);
+                if (obj.type === "jumppad") ctx.drawImage(jumppadsprite, 0, 35, 50, 15);
+                if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
+                ctx.restore();
+            }
+
+            // Finish line — neon yellow/green glow
+            ctx.save();
+            ctx.shadowColor = "#ff0";
+            ctx.shadowBlur = 24;
+            ctx.fillStyle = "#ff0";
+            ctx.fillRect(finishX - scrollX, 0, 4, canvas.height);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Particles
+            for (let p of particles) {
+                ctx.globalAlpha = p.life / 60;
+                ctx.fillStyle = "white";
+                ctx.fillRect(p.x, p.y, 4, 4);
+            }
+            ctx.globalAlpha = 1;
+
+            // Player
+            if (player && player.visible) {
+                ctx.save();
+                ctx.translate(player.x + SIZE / 2, player.y + SIZE / 2);
+                ctx.rotate(player.rotation * Math.PI / 180);
+                if (mode === "cube") {
+                    ctx.drawImage(cubeSprite, -SIZE / 2, -SIZE / 2, SIZE, SIZE);
+                } else {
+                    ctx.drawImage(shipSprite, -SIZE / 2, -SIZE / 2, SIZE, SIZE);
+                }
+                ctx.restore();
+            }
+
+            if (state === "win") {
+                // Dark overlay
+                ctx.fillStyle = "rgba(0,0,0,0.55)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Glowing title
+                ctx.save();
+                ctx.textAlign = "center";
+                ctx.font = "bold 72px Orbitron, sans-serif";
+                ctx.shadowColor = "#0ff";
+                ctx.shadowBlur = 40;
+                ctx.fillStyle = "#fff";
+                ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20);
+                ctx.shadowBlur = 0;
+
+                ctx.font = "20px Orbitron, sans-serif";
+                ctx.fillStyle = "#f0f";
+                ctx.shadowColor = "#f0f";
+                ctx.shadowBlur = 15;
+                ctx.fillText("Returning to menu...", canvas.width / 2, canvas.height / 2 + 40);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+                ctx.textAlign = "left";
+            }
+        }
+
+        // ---- EDITOR ----
+        let editorScroll = 0;
+        let editorObjects = [];
+        let editorType = "block";
+        let selectedObj = null;
+        const editorButtons = [
+            { type: "block" }, { type: "spike" }, { type: "jumppad" }, { type: "shipportal" }
+        ];
+        const editorSpawn = { x: 150, y: 0 };
+
+        function openEditor() {
+            document.getElementById("menu").style.display = "none";
+            state = "editor";
+            editorObjects = [];
+            editorScroll = 0;
+            editorType = "block";
+        }
+
+        function drawEditor() {
+            const gridSize = 50;
+            const GRID_Y_OFFSET = 62;
+
+            // Dark background
+            ctx.fillStyle = "#0a0015";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Neon grid
+            let offsetX = editorScroll % gridSize;
+            if (offsetX < 0) offsetX += gridSize;
+            let offsetY = GRID_Y_OFFSET % gridSize;
+            if (offsetY < 0) offsetY += gridSize;
+
+            ctx.strokeStyle = "rgba(255,0,255,0.12)";
+            ctx.lineWidth = 1;
+            for (let x = -offsetX; x < canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = -offsetY; y < canvas.height; y += gridSize) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Ground line
+            ctx.save();
+            ctx.shadowColor = "#f0f";
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = "#f0f";
+            ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, 3);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Ground fill
+            ctx.fillStyle = "#0d0030";
+            ctx.fillRect(0, canvas.height - GROUND_Y + 3, canvas.width, GROUND_Y);
+
+            for (let obj of editorObjects) {
+                let x = Math.floor(obj.x - editorScroll);
+                let y = Math.floor(canvas.height - GROUND_Y - obj.y - 50);
+
+                ctx.save();
+                ctx.translate(x + 25, y + 25);
+                ctx.rotate(((obj.rotation || 0) * Math.PI) / 180);
+                ctx.translate(-25, -25);
+                if (obj.type === "block") ctx.drawImage(blockSprite, 0, 0, 50, 50);
+                if (obj.type === "spike") ctx.drawImage(spikesprite, 0, 0, 50, 50);
+                if (obj.type === "jumppad") ctx.drawImage(jumppadsprite, 0, 35, 50, 15);
+                if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
+                ctx.restore();
+
+                // Neon selection outline
+                if (obj === selectedObj) {
+                    ctx.save();
+                    ctx.strokeStyle = "#0ff";
+                    ctx.shadowColor = "#0ff";
+                    ctx.shadowBlur = 12;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(x - 3, y - 3, 56, 56);
+                    ctx.shadowBlur = 0;
+                    ctx.restore();
+                }
+            }
+
+            // Spawn marker
+            ctx.save();
+            ctx.shadowColor = "#0ff";
+            ctx.shadowBlur = 10;
+            ctx.strokeStyle = "#0ff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(editorSpawn.x - editorScroll, canvas.height - GROUND_Y - editorSpawn.y - 50, 50, 50);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Toolbar background with top neon border
+            let barY = canvas.height - 80;
+            ctx.fillStyle = "rgba(5,0,20,0.95)";
+            ctx.fillRect(0, barY, canvas.width, 80);
+            ctx.save();
+            ctx.shadowColor = "#f0f";
+            ctx.shadowBlur = 14;
+            ctx.fillStyle = "#f0f";
+            ctx.fillRect(0, barY, canvas.width, 2);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Tool buttons
+            editorButtons.forEach((b, i) => {
+                let bx = 20 + i * 74, by = barY + 14;
+                let active = editorType === b.type;
+
+                // Button bg
+                ctx.fillStyle = active ? "rgba(0,255,255,0.15)" : "rgba(255,255,255,0.03)";
+                ctx.fillRect(bx, by, 52, 52);
+
+                // Border glow
+                ctx.save();
+                ctx.shadowColor = active ? "#0ff" : "#555";
+                ctx.shadowBlur = active ? 12 : 0;
+                ctx.strokeStyle = active ? "#0ff" : "#444";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bx, by, 52, 52);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                if (b.type === "block") ctx.drawImage(blockSprite, bx + 1, by + 1, 50, 50);
+                if (b.type === "spike") ctx.drawImage(spikesprite, bx + 1, by + 1, 50, 50);
+                if (b.type === "jumppad") ctx.drawImage(jumppadsprite, bx + 1, by + 36, 50, 15);
+                if (b.type === "shipportal") drawShipPortal(bx + 1, by + 6, 50, 40);
+            });
+
+            // HUD hint text
+            ctx.save();
+            ctx.font = "bold 13px Orbitron, sans-serif";
+            ctx.fillStyle = "#0ff";
+            ctx.shadowColor = "#0ff";
+            ctx.shadowBlur = 8;
+            ctx.fillText("A/D  SCROLL    RMB  ERASE    Q/E  ROTATE    X  EXPORT    ESC  MENU", 20, barY - 12);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+
+        function editorClick(e) {
+            let barY = canvas.height - 80;
+            if (e.clientY > barY) {
+                editorButtons.forEach((b, i) => {
+                    let x = 20 + i * 74, y = barY + 14;
+                    if (e.clientX > x && e.clientX < x + 52 && e.clientY > y && e.clientY < y + 52)
+                        editorType = b.type;
+                });
+                return;
+            }
+            let x = Math.floor((e.clientX + editorScroll) / 50) * 50;
+            let y = Math.floor((canvas.height - e.clientY - GROUND_Y) / 50) * 50;
+
+            // Check if clicking an existing object — if so, select it
+            let hit = editorObjects.find(o => o.x === x && o.y === y);
+            if (hit) {
+                selectedObj = hit;
+            } else {
+                selectedObj = null;
+                editorObjects.push({ type: editorType, x, y, rotation: 0 });
+            }
+        }
+
+        function editorDelete(e) {
+            let barY = canvas.height - 80;
+            if (e.clientY > barY) return;
+            let x = Math.floor((e.clientX + editorScroll) / 50) * 50;
+            let y = Math.floor((canvas.height - e.clientY - GROUND_Y) / 50) * 50;
+            editorObjects = editorObjects.filter(o => !(o.x === x && o.y === y));
+        }
+
+        function editorKey(e) {
+            if (e.key === "a" || e.key === "A") editorScroll -= 100;
+            if (e.key === "d" || e.key === "D") editorScroll += 100;
+            if (e.key === "x" || e.key === "X") {
+                let str = editorObjects.map(o => `${o.type} ${o.x} ${o.y} ${o.rotation || 0}`).join(", ");
+                alert(str);
+            }
+            if (selectedObj) {
+                if (e.key === "q" || e.key === "Q") selectedObj.rotation = ((selectedObj.rotation || 0) - 90 + 360) % 360;
+                if (e.key === "e" || e.key === "E") selectedObj.rotation = ((selectedObj.rotation || 0) + 90) % 360;
+            }
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+
+</html>
