@@ -16,7 +16,9 @@ body {
 }
 
 /* top bar */
-
+.geodash-thumb {
+  left: 350px;
+}
 .topbar {
   position: fixed;
   inset: 0 0 auto 0;
@@ -266,3 +268,4 @@ body {
   text-decoration: none;
   cursor: pointer;
 }
+
