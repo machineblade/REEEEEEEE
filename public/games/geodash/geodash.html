@@ -254,6 +254,60 @@
             color: #000;
         }
 
+        .lvl-row {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .lvl-play {
+            flex: 1;
+            padding: 8px 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 2px;
+            background: rgba(255, 0, 255, 0.05);
+            border: 1px solid #f0f;
+            color: #f0f;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: auto !important;
+        }
+
+        .lvl-play:hover {
+            background: #f0f;
+            color: #000;
+        }
+
+        .lvl-icon-btn {
+            width: 32px !important;
+            height: auto;
+            flex-shrink: 0;
+            padding: 0 !important;
+            background: transparent !important;
+            border: 1px solid #444 !important;
+            color: #888 !important;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 0 !important;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lvl-icon-btn.edit:hover {
+            border-color: #0ff !important;
+            color: #0ff !important;
+            background: rgba(0, 255, 255, 0.1) !important;
+        }
+
+        .lvl-icon-btn.del:hover {
+            border-color: #f44 !important;
+            color: #f44 !important;
+            background: rgba(255, 60, 60, 0.1) !important;
+        }
+
         .divider {
             width: 300px;
             height: 1px;
@@ -337,6 +391,8 @@
         cubeSprite.src = "./sprites/cubes/cube1.png";
         const shipSprite = new Image();
         shipSprite.src = "./sprites/ship.png";
+        const waveSprite = new Image();
+        waveSprite.src = "./sprites/wave1.png";
 
         function drawShipPortal(x, y, w, h) {
             ctx.shadowColor = "#0ff";
@@ -363,10 +419,56 @@
             ctx.textAlign = "left";
         }
 
+        function drawWavePortal(x, y, w, h) {
+            ctx.shadowColor = "#fa0";
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = "#fa0";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(255,170,0,0.10)";
+            ctx.fillRect(x, y, w, h);
+            let cx = x + w / 2, cy = y + h / 2;
+            // Draw a small wave squiggle icon
+            ctx.strokeStyle = "#fa0";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 12, cy);
+            ctx.bezierCurveTo(cx - 6, cy - 8, cx, cy + 8, cx + 6, cy);
+            ctx.bezierCurveTo(cx + 9, cy - 5, cx + 12, cy - 2, cx + 12, cy);
+            ctx.stroke();
+            ctx.fillStyle = "#fa0";
+            ctx.font = "bold 9px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("WAVE", cx, y + h - 6);
+            ctx.textAlign = "left";
+        }
+
+        function drawCubePortal(x, y, w, h) {
+            ctx.shadowColor = "#0f0";
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = "#0f0";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(0,255,0,0.10)";
+            ctx.fillRect(x, y, w, h);
+            let cx = x + w / 2, cy = y + h / 2;
+            // Draw a small cube icon
+            ctx.strokeStyle = "#0f0";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - 8, cy - 8, 16, 16);
+            ctx.fillStyle = "rgba(0,255,0,0.3)";
+            ctx.fillRect(cx - 8, cy - 8, 16, 16);
+            ctx.fillStyle = "#0f0";
+            ctx.font = "bold 9px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("CUBE", cx, y + h - 6);
+            ctx.textAlign = "left";
+        }
+
         // --- Input state ---
         let spaceHeld = false;
-        // Tracks whether the current hold has already produced a jump this grounding.
-        // Prevents re-jumping every frame while held on the ground.
         let jumpConsumed = false;
 
         function resize() {
@@ -389,6 +491,7 @@
         let player;
         let levelObjects = [];
         let particles = [];
+        let waveTrail = [];
         let jumpBuffer = 0;
         let restartTimer = 0;
         let finishX = 0;
@@ -417,6 +520,7 @@
             scrollX = 0;
             levelObjects = [];
             particles = [];
+            waveTrail = [];
             player = null;
             winTimer = 0;
             restartTimer = 0;
@@ -458,6 +562,7 @@
             mode = "cube";
             jumpBuffer = 0;
             jumpConsumed = false;
+            waveTrail = [];
         }
 
         function importLevel() {
@@ -468,15 +573,47 @@
             updateCustomLevels();
         }
 
+        function openEditorWithLevel(i) {
+            document.getElementById("menu").style.display = "none";
+            state = "editor";
+            editorScroll = 0;
+            editorType = "block";
+            editorObjects = parseLevel(customLevels[i]);
+            // Store index so export can overwrite it
+            editorEditingIndex = i;
+        }
+
         function updateCustomLevels() {
             let div = document.getElementById("customLevels");
             div.innerHTML = "";
             customLevels.forEach((lvl, i) => {
-                let b = document.createElement("button");
-                b.textContent = "Level " + (i + 3);
-                b.style.display = "block";
-                b.onclick = () => startCustomLevel(i);
-                div.appendChild(b);
+                let row = document.createElement("div");
+                row.className = "lvl-row";
+
+                let play = document.createElement("button");
+                play.className = "lvl-play";
+                play.textContent = "Level " + (i + 3);
+                play.onclick = () => startCustomLevel(i);
+
+                let edit = document.createElement("button");
+                edit.className = "lvl-icon-btn edit";
+                edit.title = "Edit";
+                edit.textContent = "✏️";
+                edit.onclick = () => openEditorWithLevel(i);
+
+                let del = document.createElement("button");
+                del.className = "lvl-icon-btn del";
+                del.title = "Delete";
+                del.textContent = "🗑️";
+                del.onclick = () => {
+                    customLevels.splice(i, 1);
+                    updateCustomLevels();
+                };
+
+                row.appendChild(play);
+                row.appendChild(edit);
+                row.appendChild(del);
+                div.appendChild(row);
             });
         }
 
@@ -504,20 +641,26 @@
         document.addEventListener("keydown", e => {
             if (e.code === "Space") {
                 if (!spaceHeld) {
-                    // Fresh press — always queue a jump
                     spaceHeld = true;
                     jumpConsumed = false;
                     if (state === "game" && mode === "cube") jumpBuffer = 8;
                 }
             }
-            if (e.code === "Escape") goToMenu();
+            if (e.code === "Escape") {
+                if (state === "editor" && editorEditingIndex >= 0) {
+                    let str = editorObjects.map(o => `${o.type} ${o.x} ${o.y} ${o.rotation || 0}`).join(", ");
+                    customLevels[editorEditingIndex] = str;
+                    updateCustomLevels();
+                }
+                goToMenu();
+            }
             if (state === "editor") editorKey(e);
         });
 
         document.addEventListener("keyup", e => {
             if (e.code === "Space") {
                 spaceHeld = false;
-                jumpConsumed = false; // Reset so next press is fresh
+                jumpConsumed = false;
             }
         });
 
@@ -577,12 +720,12 @@
             scrollX += SPEED;
             if (jumpBuffer > 0) jumpBuffer--;
 
+            // Scroll wave trail with camera
+            for (let t of waveTrail) t.x -= SPEED;
+
             let jumpForce = Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT);
 
             if (mode === "cube") {
-                // --- Buffered hold-jump logic ---
-                // If space is held and player lands, auto-trigger jump
-                // (unless this hold already consumed a jump on this touch)
                 if (spaceHeld && player.grounded && !jumpConsumed) {
                     jumpBuffer = 8;
                 }
@@ -590,7 +733,7 @@
                 if (jumpBuffer > 0 && player.grounded) {
                     player.vy = -jumpForce;
                     jumpBuffer = 0;
-                    jumpConsumed = true; // Mark jump as used for this hold
+                    jumpConsumed = true;
                 }
 
                 player.vy += GRAVITY;
@@ -617,29 +760,51 @@
                 if (player.y <= 0) { player.y = 0; player.vy = 0; }
             }
 
+            if (mode === "wave") {
+                // True wave: moves diagonally up when held, down when not
+                const WAVE_SPEED = 7;
+                if (spaceHeld) {
+                    player.vy = -WAVE_SPEED;
+                } else {
+                    player.vy = WAVE_SPEED;
+                }
+                player.y += player.vy;
+                player.rotation = spaceHeld ? -45 : 45;
+                if (player.y <= 0) { player.y = 0; }
+
+                // Record trail point at player center
+                waveTrail.push({ x: player.x + 25, y: player.y + 25 });
+                const TRAIL_MAX = 84;
+                if (waveTrail.length > TRAIL_MAX) waveTrail.shift();
+            }
+
             let landed = false;
             let ground = canvas.height - GROUND_Y;
             if (player.y + SIZE >= ground) {
-                player.y = ground - SIZE;
-                player.vy = 0;
-                landed = true;
+                if (mode === "wave") {
+                    die();
+                } else {
+                    player.y = ground - SIZE;
+                    player.vy = 0;
+                    landed = true;
+                }
             }
 
             for (let obj of levelObjects) {
                 let x = obj.x - scrollX;
                 let y = canvas.height - GROUND_Y - obj.y - 50;
 
-                let hx = mode === "ship" ? player.x + 7 : player.x;
-                let hy = mode === "ship" ? player.y + 18 : player.y;
-                let hw = mode === "ship" ? 33 : SIZE;
-                let hh = mode === "ship" ? 15 : SIZE;
+                let hx = mode === "ship" ? player.x + 7 : (mode === "wave" ? player.x + 4 : player.x);
+                let hy = mode === "ship" ? player.y + 18 : (mode === "wave" ? player.y + 4 : player.y);
+                let hw = mode === "ship" ? 33 : (mode === "wave" ? 18 : SIZE);
+                let hh = mode === "ship" ? 15 : (mode === "wave" ? 18 : SIZE);
 
                 if (obj.type === "block") {
                     let overlapX = hx + hw > x && hx < x + 50;
                     let prevBottom = (hy + hh) - player.vy;
                     let playerBottom = hy + hh;
                     if (overlapX && prevBottom <= y && playerBottom >= y) {
-                        player.y = y - hh - (mode === "ship" ? 18 : 0);
+                        player.y = y - hh - (mode === "ship" ? 18 : (mode === "wave" ? 4 : 0));
                         player.vy = 0;
                         landed = true;
                     } else if (overlapX && hy + hh > y && hy < y + 50) {
@@ -647,11 +812,35 @@
                     }
                 }
 
+                if (obj.type === "waveportal") {
+                    let overlap =
+                        hx + hw > x && hx < x + 50 &&
+                        hy + hh > y && hy < y + 100;
+                    if (overlap) {
+                        mode = "wave";
+                        waveTrail = [];
+                        // Center player vertically in the portal (portal center - half player size)
+                        player.y = (y + 50) - SIZE / 2;
+                        player.vy = 0;
+                    }
+                }
+
                 if (obj.type === "shipportal") {
                     let overlap =
                         hx + hw > x && hx < x + 50 &&
                         hy + hh > y && hy < y + 100;
-                    if (overlap) mode = "ship";
+                    if (overlap) { mode = "ship"; waveTrail = []; }
+                }
+
+                if (obj.type === "cubeportal") {
+                    let overlap =
+                        hx + hw > x && hx < x + 50 &&
+                        hy + hh > y && hy < y + 100;
+                    if (overlap) {
+                        mode = "cube";
+                        waveTrail = [];
+                        player.rotation = Math.round(player.rotation / 90) * 90;
+                    }
                 }
 
                 if (obj.type === "spike") {
@@ -673,10 +862,7 @@
                 }
             }
 
-            // When player leaves the ground (becomes airborne), reset jumpConsumed
-            // so the next landing while holding space will auto-jump again
             if (player.grounded && !landed) {
-                // Transitioning from grounded to airborne
                 jumpConsumed = false;
             }
 
@@ -728,6 +914,8 @@
                 if (obj.type === "spike") ctx.drawImage(spikesprite, 0, 0, 50, 50);
                 if (obj.type === "jumppad") ctx.drawImage(jumppadsprite, 0, 35, 50, 15);
                 if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
+                if (obj.type === "cubeportal") drawCubePortal(0, 0, 50, 100);
+                if (obj.type === "waveportal") drawWavePortal(0, 0, 50, 100);
                 ctx.restore();
             }
 
@@ -746,14 +934,28 @@
             }
             ctx.globalAlpha = 1;
 
+            // Draw wave trail
+            if (mode === "wave") {
+                ctx.fillStyle = "white";
+                ctx.shadowColor = "white";
+                ctx.shadowBlur = 4;
+                for (let i = 0; i < waveTrail.length; i++) {
+                    let t = waveTrail[i];
+                    ctx.fillRect(t.x - 12.5, t.y - 12.5, 25, 25);
+                }
+                ctx.shadowBlur = 0;
+            }
+
             if (player && player.visible) {
                 ctx.save();
                 ctx.translate(player.x + SIZE / 2, player.y + SIZE / 2);
                 ctx.rotate(player.rotation * Math.PI / 180);
                 if (mode === "cube") {
                     ctx.drawImage(cubeSprite, -SIZE / 2, -SIZE / 2, SIZE, SIZE);
+                } else if (mode === "wave") {
+                    ctx.drawImage(waveSprite, -25, -20, 50, 40);
                 } else {
-                    ctx.drawImage(shipSprite, -SIZE / 2, -SIZE / 2, SIZE, SIZE);
+                    ctx.drawImage(shipSprite, -30, -25, 60, 50);
                 }
                 ctx.restore();
             }
@@ -787,8 +989,10 @@
         let editorObjects = [];
         let editorType = "block";
         let selectedObj = null;
+        let exportNotice = 0;
+        let editorEditingIndex = -1;
         const editorButtons = [
-            { type: "block" }, { type: "spike" }, { type: "jumppad" }, { type: "shipportal" }
+            { type: "block" }, { type: "spike" }, { type: "jumppad" }, { type: "shipportal" }, { type: "cubeportal" }, { type: "waveportal" }
         ];
         const editorSpawn = { x: 150, y: 0 };
 
@@ -798,6 +1002,7 @@
             editorObjects = [];
             editorScroll = 0;
             editorType = "block";
+            editorEditingIndex = -1;
         }
 
         function drawEditor() {
@@ -844,6 +1049,8 @@
                 if (obj.type === "spike") ctx.drawImage(spikesprite, 0, 0, 50, 50);
                 if (obj.type === "jumppad") ctx.drawImage(jumppadsprite, 0, 35, 50, 15);
                 if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
+                if (obj.type === "cubeportal") drawCubePortal(0, 0, 50, 100);
+                if (obj.type === "waveportal") drawWavePortal(0, 0, 50, 100);
                 ctx.restore();
 
                 if (obj === selectedObj) {
@@ -898,6 +1105,8 @@
                 if (b.type === "spike") ctx.drawImage(spikesprite, bx + 1, by + 1, 50, 50);
                 if (b.type === "jumppad") ctx.drawImage(jumppadsprite, bx + 1, by + 36, 50, 15);
                 if (b.type === "shipportal") drawShipPortal(bx + 1, by + 6, 50, 40);
+                if (b.type === "cubeportal") drawCubePortal(bx + 1, by + 6, 50, 40);
+                if (b.type === "waveportal") drawWavePortal(bx + 1, by + 6, 50, 40);
             });
 
             ctx.save();
@@ -908,6 +1117,22 @@
             ctx.fillText("A/D  SCROLL    RMB  ERASE    Q/E  ROTATE    X  EXPORT    ESC  MENU", 20, barY - 12);
             ctx.shadowBlur = 0;
             ctx.restore();
+
+            if (exportNotice > 0) {
+                exportNotice--;
+                let alpha = Math.min(1, exportNotice / 20);
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.font = "bold 18px Orbitron, sans-serif";
+                ctx.fillStyle = "#0f0";
+                ctx.shadowColor = "#0f0";
+                ctx.shadowBlur = 20;
+                ctx.textAlign = "center";
+                ctx.fillText("✓ COPIED TO CLIPBOARD", canvas.width / 2, barY - 16);
+                ctx.shadowBlur = 0;
+                ctx.textAlign = "left";
+                ctx.restore();
+            }
         }
 
         function editorClick(e) {
@@ -945,7 +1170,12 @@
             if (e.key === "d" || e.key === "D") editorScroll += 100;
             if (e.key === "x" || e.key === "X") {
                 let str = editorObjects.map(o => `${o.type} ${o.x} ${o.y} ${o.rotation || 0}`).join(", ");
-                alert(str);
+                navigator.clipboard.writeText(str).then(() => {
+                    exportNotice = 120;
+                });
+                if (editorEditingIndex >= 0) {
+                    customLevels[editorEditingIndex] = str;
+                }
             }
             if (selectedObj) {
                 if (e.key === "q" || e.key === "Q") selectedObj.rotation = ((selectedObj.rotation || 0) - 90 + 360) % 360;
