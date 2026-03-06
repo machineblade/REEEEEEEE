@@ -24,9 +24,7 @@
             height: 100%;
         }
 
-        canvas {
-            display: block;
-        }
+        canvas { display: block; }
 
         #menu {
             position: absolute;
@@ -40,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* Animated grid lines */
         #menu::before {
             content: '';
             position: absolute;
@@ -54,13 +51,8 @@
         }
 
         @keyframes gridScroll {
-            from {
-                background-position: 0 0;
-            }
-
-            to {
-                background-position: 60px 60px;
-            }
+            from { background-position: 0 0; }
+            to { background-position: 60px 60px; }
         }
 
         .menu-title {
@@ -70,11 +62,7 @@
             letter-spacing: 8px;
             text-transform: uppercase;
             color: #fff;
-            text-shadow:
-                0 0 10px #0ff,
-                0 0 30px #0ff,
-                0 0 60px #0ff,
-                0 0 100px #f0f;
+            text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
             animation: pulse 2.5s ease-in-out infinite;
             margin-bottom: 8px;
             z-index: 1;
@@ -91,23 +79,11 @@
         }
 
         @keyframes pulse {
-
-            0%,
-            100% {
-                text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
-            }
-
-            50% {
-                text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f;
-            }
+            0%, 100% { text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f; }
+            50% { text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f; }
         }
 
-        .menu-buttons {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 40px;
-            z-index: 1;
-        }
+        .menu-buttons { display: flex; gap: 16px; margin-bottom: 40px; z-index: 1; }
 
         .menu-btn {
             padding: 14px 36px;
@@ -135,32 +111,12 @@
             clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
         }
 
-        .menu-btn:hover::before {
-            transform: scaleX(1);
-        }
-
-        .menu-btn:hover {
-            color: #000;
-            border-color: #0ff;
-        }
-
-        .menu-btn span {
-            position: relative;
-            z-index: 1;
-        }
-
-        .menu-btn.pink {
-            border-color: #f0f;
-            color: #f0f;
-        }
-
-        .menu-btn.pink::before {
-            background: #f0f;
-        }
-
-        .menu-btn.pink:hover {
-            color: #000;
-        }
+        .menu-btn:hover::before { transform: scaleX(1); }
+        .menu-btn:hover { color: #000; border-color: #0ff; }
+        .menu-btn span { position: relative; z-index: 1; }
+        .menu-btn.pink { border-color: #f0f; color: #f0f; }
+        .menu-btn.pink::before { background: #f0f; }
+        .menu-btn.pink:hover { color: #000; }
 
         .menu-section {
             z-index: 1;
@@ -181,11 +137,7 @@
             margin-bottom: 4px;
         }
 
-        .import-row {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-        }
+        .import-row { display: flex; gap: 8px; width: 100%; }
 
         #levelInput {
             flex: 1;
@@ -198,9 +150,7 @@
             outline: none;
         }
 
-        #levelInput::placeholder {
-            color: rgba(0, 255, 255, 0.3);
-        }
+        #levelInput::placeholder { color: rgba(0, 255, 255, 0.3); }
 
         .import-btn {
             padding: 10px 18px;
@@ -214,10 +164,7 @@
             transition: all 0.2s;
         }
 
-        .import-btn:hover {
-            background: #0ff;
-            color: #000;
-        }
+        .import-btn:hover { background: #0ff; color: #000; }
 
         #customLevels {
             width: 100%;
@@ -228,18 +175,9 @@
             gap: 6px;
         }
 
-        #customLevels::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        #customLevels::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        #customLevels::-webkit-scrollbar-thumb {
-            background: #f0f;
-            border-radius: 2px;
-        }
+        #customLevels::-webkit-scrollbar { width: 4px; }
+        #customLevels::-webkit-scrollbar-track { background: transparent; }
+        #customLevels::-webkit-scrollbar-thumb { background: #f0f; border-radius: 2px; }
 
         #customLevels button {
             width: 100%;
@@ -254,10 +192,7 @@
             transition: all 0.2s;
         }
 
-        #customLevels button:hover {
-            background: #f0f;
-            color: #000;
-        }
+        #customLevels button:hover { background: #f0f; color: #000; }
 
         .divider {
             width: 300px;
@@ -267,7 +202,6 @@
             z-index: 1;
         }
 
-        /* Floating particles via CSS */
         .particle {
             position: absolute;
             width: 3px;
@@ -280,15 +214,8 @@
         }
 
         @keyframes float {
-            from {
-                transform: translateY(100vh) translateX(0);
-                opacity: 1;
-            }
-
-            to {
-                transform: translateY(-10vh) translateX(40px);
-                opacity: 0;
-            }
+            from { transform: translateY(100vh) translateX(0); opacity: 1; }
+            to { transform: translateY(-10vh) translateX(40px); opacity: 0; }
         }
     </style>
 </head>
@@ -296,15 +223,11 @@
 <body>
     <canvas id="game"></canvas>
     <div id="menu">
-        <!-- Floating particles -->
-        <div class="particle"
-            style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:25%;animation-duration:8s;animation-delay:1s"></div>
-        <div class="particle"
-            style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:60%;animation-duration:9s;animation-delay:0.5s"></div>
-        <div class="particle"
-            style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:90%;animation-duration:6s;animation-delay:1.5s"></div>
 
         <div class="menu-title">Mini Dash</div>
@@ -324,7 +247,6 @@
                 <input id="levelInput" placeholder="Paste level string...">
                 <button class="import-btn" onclick="importLevel()">Add</button>
             </div>
-
             <div class="section-label" style="margin-top:12px">Custom Levels</div>
             <div id="customLevels"></div>
         </div>
@@ -335,7 +257,6 @@
         ctx.imageSmoothingQuality = "low";
         ctx.imageSmoothingEnabled = false;
 
-        // Sprites for block, spike, jumppad
         const blockSprite = new Image();
         blockSprite.src = "./sprites/block.png";
         const jumppadsprite = new Image();
@@ -347,19 +268,15 @@
         const shipSprite = new Image();
         shipSprite.src = "./sprites/ship.png";
 
-        // Ship portal — drawn with canvas so it looks nice
         function drawShipPortal(x, y, w, h) {
-            // Glowing border
             ctx.shadowColor = "#0ff";
             ctx.shadowBlur = 12;
             ctx.strokeStyle = "#0ff";
             ctx.lineWidth = 3;
             ctx.strokeRect(x, y, w, h);
             ctx.shadowBlur = 0;
-            // Translucent fill
             ctx.fillStyle = "rgba(0,255,255,0.10)";
             ctx.fillRect(x, y, w, h);
-            // Ship icon in centre
             let cx = x + w / 2, cy = y + h / 2;
             ctx.fillStyle = "#0ff";
             ctx.beginPath();
@@ -369,7 +286,6 @@
             ctx.lineTo(cx - 9, cy + 7);
             ctx.closePath();
             ctx.fill();
-            // Label
             ctx.fillStyle = "#0ff";
             ctx.font = "bold 9px sans-serif";
             ctx.textAlign = "center";
@@ -377,51 +293,11 @@
             ctx.textAlign = "left";
         }
 
-        // Ship player — drawn with canvas
-        function drawShip(px, py, w, h, tilt) {
-            ctx.save();
-            ctx.translate(px + w / 2, py + h / 2);
-            ctx.rotate(tilt * Math.PI / 180);
-            // Main body
-            ctx.fillStyle = "#0ff";
-            ctx.beginPath();
-            ctx.moveTo(w / 2, 0);
-            ctx.lineTo(-w / 2 + 8, -h / 2 + 6);
-            ctx.lineTo(-w / 2 + 8, h / 2 - 6);
-            ctx.closePath();
-            ctx.fill();
-            // Top wing
-            ctx.fillStyle = "#00aaaa";
-            ctx.beginPath();
-            ctx.moveTo(-w / 2 + 8, -6);
-            ctx.lineTo(-w / 2 - 6, -h / 2 + 2);
-            ctx.lineTo(-w / 2 + 8, 0);
-            ctx.closePath();
-            ctx.fill();
-            // Bottom wing
-            ctx.beginPath();
-            ctx.moveTo(-w / 2 + 8, 6);
-            ctx.lineTo(-w / 2 - 6, h / 2 - 2);
-            ctx.lineTo(-w / 2 + 8, 0);
-            ctx.closePath();
-            ctx.fill();
-            // Cockpit
-            ctx.fillStyle = "#003333";
-            ctx.beginPath();
-            ctx.ellipse(4, 0, 9, 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-            // Engine glow
-            ctx.shadowColor = "#f80";
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = "#f80";
-            ctx.beginPath();
-            ctx.ellipse(-w / 2 + 8, 0, 4, 3, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.restore();
-        }
-
+        // --- Input state ---
         let spaceHeld = false;
+        // Tracks whether the current hold has already produced a jump this grounding.
+        // Prevents re-jumping every frame while held on the ground.
+        let jumpConsumed = false;
 
         function resize() {
             canvas.width = window.innerWidth;
@@ -475,6 +351,8 @@
             winTimer = 0;
             restartTimer = 0;
             jumpBuffer = 0;
+            spaceHeld = false;
+            jumpConsumed = false;
             document.getElementById("menu").style.display = "flex";
         }
 
@@ -509,6 +387,7 @@
             };
             mode = "cube";
             jumpBuffer = 0;
+            jumpConsumed = false;
         }
 
         function importLevel() {
@@ -554,21 +433,29 @@
 
         document.addEventListener("keydown", e => {
             if (e.code === "Space") {
-                spaceHeld = true;
-                if (state === "game" && mode === "cube") jumpBuffer = 2;
+                if (!spaceHeld) {
+                    // Fresh press — always queue a jump
+                    spaceHeld = true;
+                    jumpConsumed = false;
+                    if (state === "game" && mode === "cube") jumpBuffer = 8;
+                }
             }
-            if (e.code === "Escape") {
-                goToMenu();
-            }
+            if (e.code === "Escape") goToMenu();
             if (state === "editor") editorKey(e);
         });
 
         document.addEventListener("keyup", e => {
-            if (e.code === "Space") spaceHeld = false;
+            if (e.code === "Space") {
+                spaceHeld = false;
+                jumpConsumed = false; // Reset so next press is fresh
+            }
         });
 
         document.addEventListener("mousedown", e => {
-            if (state === "game") jumpBuffer = 2;
+            if (state === "game") {
+                jumpBuffer = 8;
+                jumpConsumed = false;
+            }
             if (state === "editor") editorClick(e);
         });
 
@@ -613,10 +500,19 @@
             let jumpForce = Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT);
 
             if (mode === "cube") {
+                // --- Buffered hold-jump logic ---
+                // If space is held and player lands, auto-trigger jump
+                // (unless this hold already consumed a jump on this touch)
+                if (spaceHeld && player.grounded && !jumpConsumed) {
+                    jumpBuffer = 8;
+                }
+
                 if (jumpBuffer > 0 && player.grounded) {
                     player.vy = -jumpForce;
                     jumpBuffer = 0;
+                    jumpConsumed = true; // Mark jump as used for this hold
                 }
+
                 player.vy += GRAVITY;
                 player.y += player.vy;
             }
@@ -637,11 +533,7 @@
                 if (player.vy < SHIP_MAX_UP) player.vy = SHIP_MAX_UP;
                 if (player.vy > SHIP_MAX_DOWN) player.vy = SHIP_MAX_DOWN;
                 player.y += player.vy;
-
-                // Tilt ship nose up/down based on velocity
                 player.rotation = Math.max(-25, Math.min(25, player.vy * 2.5));
-
-                // Ceiling clamp
                 if (player.y <= 0) { player.y = 0; player.vy = 0; }
             }
 
@@ -657,7 +549,6 @@
                 let x = obj.x - scrollX;
                 let y = canvas.height - GROUND_Y - obj.y - 50;
 
-                // Hitbox: cube = full 50x50, ship = 33x15 with 7x18 offset
                 let hx = mode === "ship" ? player.x + 7 : player.x;
                 let hy = mode === "ship" ? player.y + 18 : player.y;
                 let hw = mode === "ship" ? 33 : SIZE;
@@ -702,9 +593,15 @@
                 }
             }
 
+            // When player leaves the ground (becomes airborne), reset jumpConsumed
+            // so the next landing while holding space will auto-jump again
+            if (player.grounded && !landed) {
+                // Transitioning from grounded to airborne
+                jumpConsumed = false;
+            }
+
             player.grounded = landed;
 
-            // Rotation: only spin in cube mode
             if (mode === "cube") {
                 if (!player.grounded) player.rotation += ROT_SPEED;
                 else player.rotation = Math.round(player.rotation / 90) * 90;
@@ -727,22 +624,18 @@
                 return;
             }
 
-            // Background
             ctx.fillStyle = "#0a0015";
             ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_Y);
 
-            // Ground
             ctx.fillStyle = "#0d0030";
             ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, GROUND_Y);
 
-            // Neon ground line
             ctx.shadowColor = "#f0f";
             ctx.shadowBlur = 20;
             ctx.fillStyle = "#f0f";
             ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, 3);
             ctx.shadowBlur = 0;
 
-            // Level objects
             for (let obj of levelObjects) {
                 let x = Math.floor(obj.x - scrollX);
                 let y = Math.floor(canvas.height - GROUND_Y - obj.y - 50);
@@ -758,7 +651,6 @@
                 ctx.restore();
             }
 
-            // Finish line — neon yellow/green glow
             ctx.save();
             ctx.shadowColor = "#ff0";
             ctx.shadowBlur = 24;
@@ -767,7 +659,6 @@
             ctx.shadowBlur = 0;
             ctx.restore();
 
-            // Particles
             for (let p of particles) {
                 ctx.globalAlpha = p.life / 60;
                 ctx.fillStyle = "white";
@@ -775,7 +666,6 @@
             }
             ctx.globalAlpha = 1;
 
-            // Player
             if (player && player.visible) {
                 ctx.save();
                 ctx.translate(player.x + SIZE / 2, player.y + SIZE / 2);
@@ -789,11 +679,9 @@
             }
 
             if (state === "win") {
-                // Dark overlay
                 ctx.fillStyle = "rgba(0,0,0,0.55)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // Glowing title
                 ctx.save();
                 ctx.textAlign = "center";
                 ctx.font = "bold 72px Orbitron, sans-serif";
@@ -836,11 +724,9 @@
             const gridSize = 50;
             const GRID_Y_OFFSET = 62;
 
-            // Dark background
             ctx.fillStyle = "#0a0015";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Neon grid
             let offsetX = editorScroll % gridSize;
             if (offsetX < 0) offsetX += gridSize;
             let offsetY = GRID_Y_OFFSET % gridSize;
@@ -855,7 +741,6 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // Ground line
             ctx.save();
             ctx.shadowColor = "#f0f";
             ctx.shadowBlur = 16;
@@ -864,7 +749,6 @@
             ctx.shadowBlur = 0;
             ctx.restore();
 
-            // Ground fill
             ctx.fillStyle = "#0d0030";
             ctx.fillRect(0, canvas.height - GROUND_Y + 3, canvas.width, GROUND_Y);
 
@@ -882,7 +766,6 @@
                 if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
                 ctx.restore();
 
-                // Neon selection outline
                 if (obj === selectedObj) {
                     ctx.save();
                     ctx.strokeStyle = "#0ff";
@@ -895,7 +778,6 @@
                 }
             }
 
-            // Spawn marker
             ctx.save();
             ctx.shadowColor = "#0ff";
             ctx.shadowBlur = 10;
@@ -905,7 +787,6 @@
             ctx.shadowBlur = 0;
             ctx.restore();
 
-            // Toolbar background with top neon border
             let barY = canvas.height - 80;
             ctx.fillStyle = "rgba(5,0,20,0.95)";
             ctx.fillRect(0, barY, canvas.width, 80);
@@ -917,16 +798,13 @@
             ctx.shadowBlur = 0;
             ctx.restore();
 
-            // Tool buttons
             editorButtons.forEach((b, i) => {
                 let bx = 20 + i * 74, by = barY + 14;
                 let active = editorType === b.type;
 
-                // Button bg
                 ctx.fillStyle = active ? "rgba(0,255,255,0.15)" : "rgba(255,255,255,0.03)";
                 ctx.fillRect(bx, by, 52, 52);
 
-                // Border glow
                 ctx.save();
                 ctx.shadowColor = active ? "#0ff" : "#555";
                 ctx.shadowBlur = active ? 12 : 0;
@@ -942,7 +820,6 @@
                 if (b.type === "shipportal") drawShipPortal(bx + 1, by + 6, 50, 40);
             });
 
-            // HUD hint text
             ctx.save();
             ctx.font = "bold 13px Orbitron, sans-serif";
             ctx.fillStyle = "#0ff";
@@ -966,7 +843,6 @@
             let x = Math.floor((e.clientX + editorScroll) / 50) * 50;
             let y = Math.floor((canvas.height - e.clientY - GROUND_Y) / 50) * 50;
 
-            // Check if clicking an existing object — if so, select it
             let hit = editorObjects.find(o => o.x === x && o.y === y);
             if (hit) {
                 selectedObj = hit;
