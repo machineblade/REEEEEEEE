@@ -299,13 +299,13 @@
         .lvl-icon-btn.edit:hover {
             border-color: #0ff !important;
             color: #0ff !important;
-            background: rgba(0, 255, 255, 0.1) !important;
+            background: rgba(0,255,255,0.1) !important;
         }
 
         .lvl-icon-btn.del:hover {
             border-color: #f44 !important;
             color: #f44 !important;
-            background: rgba(255, 60, 60, 0.1) !important;
+            background: rgba(255,60,60,0.1) !important;
         }
 
         .divider {
@@ -498,7 +498,7 @@
         let winTimer = 0;
 
         const levels = [
-            "spike 550 0 0, spike 1100 0 0, spike 1150 0 0, spike 1200 0 0, spike 1250 0 0, spike 1300 0 0, block 1050 0 0, block 1200 100 0, block 1250 100 0, spike 1350 0 0, spike 1800 0 0, spike 1850 0 0, block 1900 0 0, block 1950 0 0, block 2000 0 0, block 2050 0 0, spike 2100 0 0, spike 2150 0 0, spike 2200 0 0, block 2250 0 0, block 2300 0 0, block 2400 50 0, block 2450 50 0, block 2550 100 0, block 2600 100 0, spike 2650 100 90, spike 2450 0 180, spike 2400 0 180, spike 2550 50 180, spike 2600 50 180, spike 2500 50 90, block 2750 150 0, block 2800 150 0, block 2950 250 0, spike 2950 300 0, block 2900 100 0, block 2950 100 0, block 3000 100 0, block 3050 100 0, block 3100 100 0, block 3050 350 0, block 3050 300 0, block 3050 250 0, block 3100 250 0, block 3150 250 0, block 3200 250 0, block 3200 200 0, block 3250 200 0, block 3150 100 0, block 3200 100 0, block 3250 100 0, block 3300 100 0, block 3350 100 0, block 3400 100 0, block 3300 200 0, block 3350 200 0, block 3400 200 0, block 3450 250 0, block 3500 250 0, block 3450 200 0, block 3450 100 0, block 3550 100 0, block 3500 100 0, block 3550 250 0, shipportal 3550 200 0, block 3550 50 0, block 3550 0 0, spike 3900 0 0, spike 3850 0 0, block 3800 0 0, spike 3950 0 0, spike 4000 0 0, spike 4050 0 0, spike 4100 0 0, spike 4150 0 0, spike 4200 0 0, spike 4250 0 0, spike 4300 0 0, spike 4300 300 180, spike 4250 300 180, spike 4200 300 180, spike 4150 300 180, spike 4100 300 180, spike 4050 300 180, spike 4000 300 180, spike 3950 300 180, spike 3900 300 180, spike 3850 300 180, block 3800 300 0, block 4350 0 0, block 4350 350 0, block 4300 350 0, block 4200 350 0, block 4250 350 0, block 4150 350 0, block 4100 350 0, block 4050 350 0, block 4000 350 0, block 3950 350 0, block 3900 350 0, block 3850 350 0, block 3800 350 0, block 3750 350 0, block 3700 350 0, block 3650 350 0, block 3600 350 0, block 3550 350 0, block 3550 300 0, block 4550 350 0, block 4600 350 0, block 4650 350 0, block 4700 350 0, block 4350 400 0, block 4350 450 0, block 4350 550 0, block 4350 500 0, block 4400 550 0, block 4450 550 0, block 4500 550 0, block 4550 550 0, block 4600 550 0, block 4650 550 0, block 4700 550 0, block 4750 550 0, block 4800 550 0, block 4850 550 0, block 4750 350 0, block 4800 350 0, block 4850 350 0, spike 4600 400 0, spike 4800 500 180, block 4900 350 0, block 4900 550 0, spike 4950 400 0, spike 4950 500 180, block 4950 350 0, block 4950 550 0, block 4550 0 0, block 4600 50 0, block 4650 100 0, block 4700 150 0, block 4750 150 0, block 4800 150 0, block 4850 100 0, block 4900 50 0, block 4950 0 0, block 5000 300 0, block 5050 250 0, block 5100 200 0, block 5150 150 0, block 5200 150 0, block 5250 150 0, block 5300 200 0, block 5350 250 0, block 5400 300 0, block 5000 350 0, block 5050 350 0, block 5100 350 0, block 5150 350 0, block 5200 350 0, block 5250 350 0, block 5300 350 0, block 5350 350 0, block 5400 350 0, block 5000 550 0, block 5050 550 0, block 5100 550 0, block 5150 550 0, cubeportal 5150 450 0, cubeportal 5150 500 0, spike 5400 400 0, spike 5350 400 0, block 5150 600 0, block 5200 600 0, block 5250 600 0, block 5300 600 0, block 5350 600 0, block 5400 600 0",
+            "block 350 -3, block 450 47, block 500 47, spike 400 -3, block 600 97",
             "block 400 -3, block 450 -3, spike 500 -3, spike 550 -3"
         ];
         const customLevels = [];
@@ -803,8 +803,11 @@
                     let overlapX = hx + hw > x && hx < x + 50;
                     let prevBottom = (hy + hh) - player.vy;
                     let playerBottom = hy + hh;
-                    if (overlapX && prevBottom <= y && playerBottom >= y) {
-                        player.y = y - hh - (mode === "ship" ? 18 : (mode === "wave" ? 4 : 0));
+                    if (mode === "wave") {
+                        // In wave mode, any block contact = death
+                        if (overlapX && hy + hh > y && hy < y + 50) die();
+                    } else if (overlapX && prevBottom <= y && playerBottom >= y) {
+                        player.y = y - hh - (mode === "ship" ? 18 : 0);
                         player.vy = 0;
                         landed = true;
                     } else if (overlapX && hy + hh > y && hy < y + 50) {
@@ -816,10 +819,10 @@
                     let overlap =
                         hx + hw > x && hx < x + 50 &&
                         hy + hh > y && hy < y + 100;
-                    if (overlap) {
+                    if (overlap && mode !== "wave") {
                         mode = "wave";
                         waveTrail = [];
-                        // Center player vertically in the portal (portal center - half player size)
+                        // Center player vertically in the portal
                         player.y = (y + 50) - SIZE / 2;
                         player.vy = 0;
                     }
@@ -1193,4 +1196,3 @@
 </body>
 
 </html>
-
