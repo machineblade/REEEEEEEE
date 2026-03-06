@@ -24,7 +24,9 @@
             height: 100%;
         }
 
-        canvas { display: block; }
+        canvas {
+            display: block;
+        }
 
         #menu {
             position: absolute;
@@ -51,8 +53,13 @@
         }
 
         @keyframes gridScroll {
-            from { background-position: 0 0; }
-            to { background-position: 60px 60px; }
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 60px 60px;
+            }
         }
 
         .menu-title {
@@ -79,11 +86,23 @@
         }
 
         @keyframes pulse {
-            0%, 100% { text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f; }
-            50% { text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f; }
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
+            }
+
+            50% {
+                text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f;
+            }
         }
 
-        .menu-buttons { display: flex; gap: 16px; margin-bottom: 40px; z-index: 1; }
+        .menu-buttons {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+            z-index: 1;
+        }
 
         .menu-btn {
             padding: 14px 36px;
@@ -111,12 +130,32 @@
             clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
         }
 
-        .menu-btn:hover::before { transform: scaleX(1); }
-        .menu-btn:hover { color: #000; border-color: #0ff; }
-        .menu-btn span { position: relative; z-index: 1; }
-        .menu-btn.pink { border-color: #f0f; color: #f0f; }
-        .menu-btn.pink::before { background: #f0f; }
-        .menu-btn.pink:hover { color: #000; }
+        .menu-btn:hover::before {
+            transform: scaleX(1);
+        }
+
+        .menu-btn:hover {
+            color: #000;
+            border-color: #0ff;
+        }
+
+        .menu-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .menu-btn.pink {
+            border-color: #f0f;
+            color: #f0f;
+        }
+
+        .menu-btn.pink::before {
+            background: #f0f;
+        }
+
+        .menu-btn.pink:hover {
+            color: #000;
+        }
 
         .menu-section {
             z-index: 1;
@@ -137,7 +176,11 @@
             margin-bottom: 4px;
         }
 
-        .import-row { display: flex; gap: 8px; width: 100%; }
+        .import-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
 
         #levelInput {
             flex: 1;
@@ -150,7 +193,9 @@
             outline: none;
         }
 
-        #levelInput::placeholder { color: rgba(0, 255, 255, 0.3); }
+        #levelInput::placeholder {
+            color: rgba(0, 255, 255, 0.3);
+        }
 
         .import-btn {
             padding: 10px 18px;
@@ -164,7 +209,10 @@
             transition: all 0.2s;
         }
 
-        .import-btn:hover { background: #0ff; color: #000; }
+        .import-btn:hover {
+            background: #0ff;
+            color: #000;
+        }
 
         #customLevels {
             width: 100%;
@@ -175,9 +223,18 @@
             gap: 6px;
         }
 
-        #customLevels::-webkit-scrollbar { width: 4px; }
-        #customLevels::-webkit-scrollbar-track { background: transparent; }
-        #customLevels::-webkit-scrollbar-thumb { background: #f0f; border-radius: 2px; }
+        #customLevels::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #customLevels::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #customLevels::-webkit-scrollbar-thumb {
+            background: #f0f;
+            border-radius: 2px;
+        }
 
         #customLevels button {
             width: 100%;
@@ -192,7 +249,10 @@
             transition: all 0.2s;
         }
 
-        #customLevels button:hover { background: #f0f; color: #000; }
+        #customLevels button:hover {
+            background: #f0f;
+            color: #000;
+        }
 
         .divider {
             width: 300px;
@@ -214,8 +274,15 @@
         }
 
         @keyframes float {
-            from { transform: translateY(100vh) translateX(0); opacity: 1; }
-            to { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+            from {
+                transform: translateY(100vh) translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-10vh) translateX(40px);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -223,11 +290,14 @@
 <body>
     <canvas id="game"></canvas>
     <div id="menu">
-        <div class="particle" style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle"
+            style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:25%;animation-duration:8s;animation-delay:1s"></div>
-        <div class="particle" style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle"
+            style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:60%;animation-duration:9s;animation-delay:0.5s"></div>
-        <div class="particle" style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle"
+            style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:90%;animation-duration:6s;animation-delay:1.5s"></div>
 
         <div class="menu-title">Mini Dash</div>
@@ -453,10 +523,20 @@
 
         document.addEventListener("mousedown", e => {
             if (state === "game") {
-                jumpBuffer = 8;
-                jumpConsumed = false;
+                if (!spaceHeld) {
+                    spaceHeld = true;
+                    jumpConsumed = false;
+                    if (mode === "cube") jumpBuffer = 8;
+                }
             }
             if (state === "editor") editorClick(e);
+        });
+
+        document.addEventListener("mouseup", e => {
+            if (state === "game") {
+                spaceHeld = false;
+                jumpConsumed = false;
+            }
         });
 
         document.addEventListener("contextmenu", e => {
