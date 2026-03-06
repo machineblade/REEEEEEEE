@@ -7,77 +7,64 @@
 </head>
 <body>
   <div class="topbar">
-  <div class="topbar-inner">
-    <div class="topbar-left-group">
-      <div class="topbar-left">SUPREME 1</div>
-      <div class="nav-buttons">
-        <button class="nav-button" onclick="window.location.href='../index.html'">HOME</button>
-        <button class="nav-button nav-active" onclick="window.location.href='./games.html'">GAMES</button>
-        <button class="nav-button" onclick="window.location.href='../about/about.html'">ABOUT</button>
-        <button class="nav-button" onclick="window.location.href='../messanger/index.html'">MESSENGER</button>
+    <div class="topbar-inner">
+      <div class="topbar-left-group">
+        <div class="topbar-left">SUPREME 1</div>
+        <div class="nav-buttons">
+          <button class="nav-button" onclick="window.location.href='../index.html'">HOME</button>
+          <button class="nav-button nav-active" onclick="window.location.href='./games.html'">GAMES</button>
+          <button class="nav-button" onclick="window.location.href='../about/about.html'">ABOUT</button>
+          <button class="nav-button" onclick="window.location.href='../messanger/index.html'">MESSENGER</button>
+        </div>
+      </div>
+      <div class="user-menu">
+        <button class="user-toggle" id="user-toggle">
+          <span id="topbar-username">Username</span>
+          <span class="user-caret">▾</span>
+        </button>
+        <div class="user-dropdown" id="user-dropdown">
+          <button class="logout-circle" id="logout" title="Log out">
+            <span class="logout-label">Log out</span>
+          </button>        
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="user-menu">
-      <button class="user-toggle" id="user-toggle">
-        <span id="topbar-username">Username</span>
-        <span class="user-caret">▾</span>
-      </button>
-      <div class="user-dropdown" id="user-dropdown">
-        <button class="logout-circle" id="logout" title="Log out">
-          <span class="logout-label">Log out</span>
-        </button>        
-      </div>
-    </div>
-
+  <main class="content-wrapper">
     <a class="slither-link" href="./slitherio/index.html">
       <div class="slither-thumb">
-          <img src="./slitherio/thumbnail.png" alt="Loading...">
+        <img src="./slitherio/thumbnail.png" alt="Slither.io">
       </div>
-  </a>
+    </a>
     <a class="slither-link" href="./geodash/geodash.html">
       <div class="slither-thumb">
-          <img src="./slitherio/thumbnail.png" alt="Loading...">
+        <img src="./geodash/thumbnail.png" alt="GeoDash">
       </div>
-  </a>
-  
-  
-  </div>
-</div>
-
-<main class="content-wrapper">
-</main>
-
+    </a>
+  </main>
 
   <script src="../localcheck.js"></script>
   <script>
-  const userToggle = document.getElementById('user-toggle');
-  const userDropdown = document.getElementById('user-dropdown');
-
-  if (userToggle && userDropdown) {
-    userToggle.addEventListener('click', () => {
-      userDropdown.classList.toggle('open');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!userDropdown.contains(e.target) && !userToggle.contains(e.target)) {
-        userDropdown.classList.remove('open');
-      }
-    });
-  }
-
-  const logoutBtn = document.getElementById('logout');
-  if (logoutBtn) {
-    logoutBtn.onclick = () => {
-      localStorage.removeItem('user');
-      window.location.href = '/login.html';
-    };
-  }
-</script>
-
+    const userToggle = document.getElementById('user-toggle');
+    const userDropdown = document.getElementById('user-dropdown');
+    if (userToggle && userDropdown) {
+      userToggle.addEventListener('click', () => {
+        userDropdown.classList.toggle('open');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userDropdown.contains(e.target) && !userToggle.contains(e.target)) {
+          userDropdown.classList.remove('open');
+        }
+      });
+    }
+    const logoutBtn = document.getElementById('logout');
+    if (logoutBtn) {
+      logoutBtn.onclick = () => {
+        localStorage.removeItem('user');
+        window.location.href = '/login.html';
+      };
+    }
+  </script>
 </body>
 </html>
-
-
-
-
