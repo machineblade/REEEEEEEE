@@ -1,563 +1,272 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <title>Mini Dash + Level Editor</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;600&display=swap');
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html,
-        body {
-            overflow: hidden;
-            background: #000;
-            font-family: 'Rajdhani', sans-serif;
-            color: white;
-            height: 100%;
-        }
-
-        canvas {
-            display: block;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; color: white; height: 100%; }
+        canvas { display: block; }
 
         .overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             overflow: hidden;
         }
-
         .overlay-bg {
-            position: absolute;
-            inset: 0;
+            position: absolute; inset: 0;
             background: radial-gradient(ellipse at 50% 40%, #1a003a 0%, #000010 70%);
             z-index: 0;
         }
-
         .overlay-bg::before {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             background-image:
-                linear-gradient(rgba(255, 0, 255, 0.07) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 0, 255, 0.07) 1px, transparent 1px);
+                linear-gradient(rgba(255,0,255,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,0,255,0.07) 1px, transparent 1px);
             background-size: 60px 60px;
-            animation: gridScroll 4s linear infinite;
-            pointer-events: none;
+            animation: gridScroll 4s linear infinite; pointer-events: none;
         }
-
-        @keyframes gridScroll {
-            from {
-                background-position: 0 0;
-            }
-
-            to {
-                background-position: 60px 60px;
-            }
-        }
+        @keyframes gridScroll { from { background-position: 0 0; } to { background-position: 60px 60px; } }
 
         .menu-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 72px;
-            font-weight: 900;
-            letter-spacing: 8px;
-            text-transform: uppercase;
-            color: #fff;
+            font-family: 'Orbitron', sans-serif; font-size: 72px; font-weight: 900;
+            letter-spacing: 8px; text-transform: uppercase; color: #fff;
             text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
-            animation: pulse 2.5s ease-in-out infinite;
-            margin-bottom: 8px;
-            z-index: 1;
+            animation: pulse 2.5s ease-in-out infinite; margin-bottom: 8px; z-index: 1;
         }
-
         .menu-subtitle {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
-            letter-spacing: 6px;
-            color: #f0f;
-            text-shadow: 0 0 10px #f0f;
-            margin-bottom: 50px;
-            z-index: 1;
+            font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 6px;
+            color: #f0f; text-shadow: 0 0 10px #f0f; margin-bottom: 50px; z-index: 1;
         }
-
         @keyframes pulse {
-
-            0%,
-            100% {
-                text-shadow: 0 0 10px #0ff, 0 0 30px #0ff, 0 0 60px #0ff, 0 0 100px #f0f;
-            }
-
-            50% {
-                text-shadow: 0 0 20px #0ff, 0 0 50px #0ff, 0 0 90px #0ff, 0 0 140px #f0f;
-            }
+            0%,100% { text-shadow: 0 0 10px #0ff,0 0 30px #0ff,0 0 60px #0ff,0 0 100px #f0f; }
+            50% { text-shadow: 0 0 20px #0ff,0 0 50px #0ff,0 0 90px #0ff,0 0 140px #f0f; }
         }
 
-        .main-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            z-index: 1;
+        .main-actions { display: flex; align-items: center; gap: 20px; z-index: 1; }
+        .icon-btn {
+            width: 64px; height: 64px; background: rgba(160,0,255,0.12); border: 2px solid #a000ff;
+            color: #c060ff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); transition: all 0.2s;
         }
+        .icon-btn:hover { background: #a000ff; color: #fff; }
 
+        /* ── ICON SELECT SCREEN ─────────────────────────────── */
+        #iconSelect { flex-direction: column; }
+        .ic-title { font-family:'Orbitron',sans-serif; font-size:26px; letter-spacing:6px; color:#fff; text-shadow:0 0 20px #c060ff; z-index:1; margin-bottom:28px; }
+        .ic-tabs { display:flex; gap:12px; z-index:1; margin-bottom:28px; }
+        .ic-tab {
+            padding:10px 28px; font-family:'Orbitron',sans-serif; font-size:12px; letter-spacing:3px;
+            background:transparent; border:2px solid #555; color:#888; cursor:pointer; transition:all 0.2s;
+            clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+        }
+        .ic-tab.active { border-color:#c060ff; color:#c060ff; background:rgba(160,0,255,0.12); box-shadow:0 0 14px rgba(160,0,255,0.3); }
+        .ic-tab:hover:not(.active) { border-color:#888; color:#ccc; }
+        .ic-grid { display:flex; flex-direction:column; align-items:center; gap:6px; z-index:1; margin-bottom:16px; max-height:320px; overflow-y:auto; }
+        .ic-cell {
+            width:80px; height:80px; background:rgba(160,0,255,0.06); border:2px solid #440066;
+            cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center;
+            clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);
+        }
+        .ic-cell:hover { border-color:#c060ff; background:rgba(160,0,255,0.18); }
+        .ic-cell.selected { border-color:#c060ff; background:rgba(160,0,255,0.25); box-shadow:0 0 18px rgba(160,0,255,0.5); }
+        .ic-colors { display:flex; flex-direction:column; gap:8px; z-index:1; margin-bottom:16px; align-items:flex-start; }
+        .ic-color-label { font-family:'Orbitron',sans-serif; font-size:11px; letter-spacing:2px; color:#888; margin-right:6px; }
+        .ic-swatch {
+            width:32px; height:32px; border-radius:50%; cursor:pointer; border:3px solid #333;
+            transition:all 0.2s; box-shadow:0 0 0 0 transparent;
+        }
+        .ic-swatch.selected { border-color:#fff; box-shadow:0 0 12px rgba(255,255,255,0.6); }
+        .ic-done {
+            padding:12px 44px; font-family:'Orbitron',sans-serif; font-size:14px; letter-spacing:4px;
+            background:transparent; border:2px solid #c060ff; color:#c060ff; cursor:pointer; transition:all 0.2s;
+            clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); z-index:1;
+        }
+        .ic-done:hover { background:#c060ff; color:#000; }
         .big-play-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            padding: 24px 56px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 22px;
-            font-weight: 900;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            background: transparent;
-            border: 3px solid #0ff;
-            color: #0ff;
-            cursor: pointer;
-            position: relative;
-            clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            padding: 24px 56px; font-family: 'Orbitron', sans-serif; font-size: 22px;
+            font-weight: 900; letter-spacing: 6px; text-transform: uppercase;
+            background: transparent; border: 3px solid #0ff; color: #0ff;
+            cursor: pointer; position: relative;
+            clip-path: polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
             transition: all 0.2s ease;
         }
-
         .big-play-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: #0ff;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.2s ease;
-            clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+            content: ''; position: absolute; inset: 0; background: #0ff;
+            transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease;
+            clip-path: polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
         }
-
-        .big-play-btn:hover::before {
-            transform: scaleX(1);
-        }
-
-        .big-play-btn:hover {
-            color: #000;
-        }
-
-        .big-play-btn>* {
-            position: relative;
-            z-index: 1;
-        }
+        .big-play-btn:hover::before { transform: scaleX(1); }
+        .big-play-btn:hover { color: #000; }
+        .big-play-btn > * { position: relative; z-index: 1; }
 
         .wrench-btn {
-            width: 64px;
-            height: 64px;
-            background: transparent;
-            border: 2px solid #f0f;
-            color: #f0f;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-            transition: all 0.2s;
+            width: 64px; height: 64px; background: transparent; border: 2px solid #f0f;
+            color: #f0f; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); transition: all 0.2s;
         }
-
-        .wrench-btn:hover {
-            background: #f0f;
-            color: #000;
-        }
+        .wrench-btn:hover { background: #f0f; color: #000; }
 
         .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: #0ff;
-            box-shadow: 0 0 6px #0ff;
-            animation: float linear infinite;
-            pointer-events: none;
-            z-index: 1;
+            position: absolute; width: 3px; height: 3px; border-radius: 50%;
+            background: #0ff; box-shadow: 0 0 6px #0ff;
+            animation: float linear infinite; pointer-events: none; z-index: 1;
         }
-
         @keyframes float {
-            from {
-                transform: translateY(100vh) translateX(0);
-                opacity: 1;
-            }
-
-            to {
-                transform: translateY(-10vh) translateX(40px);
-                opacity: 0;
-            }
+            from { transform: translateY(100vh) translateX(0); opacity: 1; }
+            to { transform: translateY(-10vh) translateX(40px); opacity: 0; }
         }
 
         .ls-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            letter-spacing: 6px;
-            color: #fff;
-            text-shadow: 0 0 20px #0ff;
-            z-index: 1;
-            margin-bottom: 40px;
+            font-family: 'Orbitron', sans-serif; font-size: 28px; letter-spacing: 6px;
+            color: #fff; text-shadow: 0 0 20px #0ff; z-index: 1; margin-bottom: 40px;
         }
-
         .ls-back {
-            position: absolute;
-            top: 24px;
-            left: 24px;
-            z-index: 2;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
-            letter-spacing: 3px;
-            background: transparent;
-            border: 1px solid #f0f;
-            color: #f0f;
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: all 0.2s;
+            position: absolute; top: 24px; left: 24px; z-index: 2;
+            font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 3px;
+            background: transparent; border: 1px solid #f0f; color: #f0f;
+            padding: 10px 20px; cursor: pointer; transition: all 0.2s;
         }
+        .ls-back:hover { background: #f0f; color: #000; }
 
-        .ls-back:hover {
-            background: #f0f;
-            color: #000;
-        }
-
-        .ls-viewport {
-            width: 100vw;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .ls-track {
-            display: flex;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        .ls-viewport { width: 100vw; overflow: hidden; z-index: 1; }
+        .ls-track { display: flex; transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); }
         .ls-card {
-            min-width: 100vw;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
+            min-width: 100vw; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 20px;
         }
-
         .ls-card-inner {
-            width: 420px;
-            padding: 40px;
-            border: 2px solid #0ff;
-            background: rgba(0, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            width: 420px; padding: 40px; border: 2px solid #0ff;
+            background: rgba(0,255,255,0.05);
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            box-shadow: 0 0 30px rgba(0,255,255,0.1);
         }
-
-        .ls-card-num {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            letter-spacing: 5px;
-            color: #0ff;
-            opacity: 0.6;
-        }
-
-        .ls-card-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: #fff;
-            text-shadow: 0 0 20px #0ff;
-        }
-
-        .ls-card-desc {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 15px;
-            color: rgba(255, 255, 255, 0.5);
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
+        .ls-card-num { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 5px; color: #0ff; opacity: 0.6; }
+        .ls-card-name { font-family: 'Orbitron', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 4px; color: #fff; text-shadow: 0 0 20px #0ff; }
+        .ls-card-desc { font-family: 'Rajdhani', sans-serif; font-size: 15px; color: rgba(255,255,255,0.5); text-align: center; letter-spacing: 1px; }
         .ls-play-btn {
-            margin-top: 8px;
-            padding: 14px 44px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 15px;
-            letter-spacing: 4px;
-            background: transparent;
-            border: 2px solid #0ff;
-            color: #0ff;
-            cursor: pointer;
-            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
+            margin-top: 8px; padding: 14px 44px;
+            font-family: 'Orbitron', sans-serif; font-size: 15px; letter-spacing: 4px;
+            background: transparent; border: 2px solid #0ff; color: #0ff;
+            cursor: pointer; clip-path: polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+            transition: all 0.2s; position: relative; overflow: hidden;
         }
-
         .ls-play-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: #0ff;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.2s;
+            content: ''; position: absolute; inset: 0; background: #0ff;
+            transform: scaleX(0); transform-origin: left; transition: transform 0.2s;
         }
-
-        .ls-play-btn:hover::before {
-            transform: scaleX(1);
-        }
-
-        .ls-play-btn:hover {
-            color: #000;
-        }
-
-        .ls-play-btn span {
-            position: relative;
-            z-index: 1;
-        }
+        .ls-play-btn:hover::before { transform: scaleX(1); }
+        .ls-play-btn:hover { color: #000; }
+        .ls-play-btn span { position: relative; z-index: 1; }
 
         .ls-arrows {
-            position: absolute;
-            bottom: 36px;
-            left: 0;
-            right: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            z-index: 1;
+            position: absolute; bottom: 36px; left: 0; right: 0;
+            display: flex; align-items: center; justify-content: center; gap: 24px; z-index: 1;
         }
-
         .ls-arrow {
-            width: 52px;
-            height: 52px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 22px;
-            background: transparent;
-            border: 2px solid #0ff;
-            color: #0ff;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 52px; height: 52px; font-family: 'Orbitron', sans-serif; font-size: 22px;
+            background: transparent; border: 2px solid #0ff; color: #0ff;
+            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
         }
-
-        .ls-arrow:hover {
-            background: #0ff;
-            color: #000;
-        }
-
-        .ls-dots {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
+        .ls-arrow:hover { background: #0ff; color: #000; }
+        .ls-dots { display: flex; gap: 8px; align-items: center; }
         .ls-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #333;
-            border: 1px solid #0ff;
-            transition: all 0.2s;
-            cursor: pointer;
+            width: 8px; height: 8px; border-radius: 50%; background: #333;
+            border: 1px solid #0ff; transition: all 0.2s; cursor: pointer;
         }
+        .ls-dot.active { background: #0ff; box-shadow: 0 0 8px #0ff; }
 
-        .ls-dot.active {
-            background: #0ff;
-            box-shadow: 0 0 8px #0ff;
-        }
-
-        .ws-buttons {
-            display: flex;
-            gap: 24px;
-            z-index: 1;
-        }
-
+        .ws-buttons { display: flex; gap: 24px; z-index: 1; }
         .ws-btn {
-            width: 180px;
-            height: 160px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
-            letter-spacing: 3px;
-            background: rgba(255, 0, 255, 0.05);
-            border: 2px solid #f0f;
-            color: #f0f;
-            cursor: pointer;
-            transition: all 0.2s;
-            clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+            width: 180px; height: 160px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 3px;
+            background: rgba(255,0,255,0.05); border: 2px solid #f0f; color: #f0f;
+            cursor: pointer; transition: all 0.2s;
+            clip-path: polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);
         }
+        .ws-btn:hover { background: #f0f; color: #000; }
 
-        .ws-btn:hover {
-            background: #f0f;
-            color: #000;
-        }
-
-        .folder-body {
-            z-index: 1;
-            width: 420px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .folder-import {
-            display: flex;
-            gap: 8px;
-        }
-
+        .folder-body { z-index: 1; width: 420px; display: flex; flex-direction: column; gap: 14px; }
+        .folder-import { display: flex; gap: 8px; }
         .folder-import input {
-            flex: 1;
-            padding: 10px 14px;
-            background: rgba(0, 255, 255, 0.05);
-            border: 1px solid #0ff;
-            color: #0ff;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 14px;
-            outline: none;
+            flex: 1; padding: 10px 14px; background: rgba(0,255,255,0.05);
+            border: 1px solid #0ff; color: #0ff; font-family: 'Rajdhani', sans-serif;
+            font-size: 14px; outline: none;
         }
-
-        .folder-import input::placeholder {
-            color: rgba(0, 255, 255, 0.3);
-        }
-
-        .folder-list {
-            max-height: 320px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .folder-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .folder-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .folder-list::-webkit-scrollbar-thumb {
-            background: #f0f;
-            border-radius: 2px;
-        }
+        .folder-import input::placeholder { color: rgba(0,255,255,0.3); }
+        .folder-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .folder-list::-webkit-scrollbar { width: 4px; }
+        .folder-list::-webkit-scrollbar-track { background: transparent; }
+        .folder-list::-webkit-scrollbar-thumb { background: #f0f; border-radius: 2px; }
 
         .import-btn {
-            padding: 10px 18px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            letter-spacing: 1px;
-            background: transparent;
-            border: 1px solid #0ff;
-            color: #0ff;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 10px 18px; font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 1px;
+            background: transparent; border: 1px solid #0ff; color: #0ff; cursor: pointer; transition: all 0.2s;
         }
+        .import-btn:hover { background: #0ff; color: #000; }
 
-        .import-btn:hover {
-            background: #0ff;
-            color: #000;
-        }
-
-        .lvl-row {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-        }
-
+        .lvl-row { display: flex; gap: 4px; width: 100%; }
         .lvl-play {
-            flex: 1;
-            padding: 8px 10px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 11px;
-            letter-spacing: 2px;
-            background: rgba(255, 0, 255, 0.05);
-            border: 1px solid #f0f;
-            color: #f0f;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: auto !important;
+            flex: 1; padding: 8px 10px; font-family: 'Orbitron', sans-serif; font-size: 11px;
+            letter-spacing: 2px; background: rgba(255,0,255,0.05); border: 1px solid #f0f;
+            color: #f0f; cursor: pointer; transition: all 0.2s; width: auto !important;
         }
-
-        .lvl-play:hover {
-            background: #f0f;
-            color: #000;
-        }
-
+        .lvl-play:hover { background: #f0f; color: #000; }
         .lvl-icon-btn {
-            width: 32px !important;
-            flex-shrink: 0;
-            padding: 0 !important;
-            background: transparent !important;
-            border: 1px solid #444 !important;
-            color: #888 !important;
-            cursor: pointer;
-            font-size: 14px;
-            letter-spacing: 0 !important;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 32px !important; flex-shrink: 0; padding: 0 !important;
+            background: transparent !important; border: 1px solid #444 !important;
+            color: #888 !important; cursor: pointer; font-size: 14px; letter-spacing: 0 !important;
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
         }
-
-        .lvl-icon-btn.edit:hover {
-            border-color: #0ff !important;
-            color: #0ff !important;
-            background: rgba(0, 255, 255, 0.1) !important;
-        }
-
-        .lvl-icon-btn.del:hover {
-            border-color: #f44 !important;
-            color: #f44 !important;
-            background: rgba(255, 60, 60, 0.1) !important;
-        }
+        .lvl-icon-btn.edit:hover { border-color: #0ff !important; color: #0ff !important; background: rgba(0,255,255,0.1) !important; }
+        .lvl-icon-btn.del:hover { border-color: #f44 !important; color: #f44 !important; background: rgba(255,60,60,0.1) !important; }
     </style>
 </head>
-
 <body>
     <canvas id="game"></canvas>
 
     <!-- MAIN MENU -->
     <div id="menu" class="overlay" style="display:flex">
         <div class="overlay-bg"></div>
-        <div class="particle"
-            style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:10%;animation-duration:6s;animation-delay:0s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:25%;animation-duration:8s;animation-delay:1s"></div>
-        <div class="particle"
-            style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:40%;animation-duration:5s;animation-delay:2s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:60%;animation-duration:9s;animation-delay:0.5s"></div>
-        <div class="particle"
-            style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
+        <div class="particle" style="left:75%;animation-duration:7s;animation-delay:3s;background:#f0f;box-shadow:0 0 6px #f0f"></div>
         <div class="particle" style="left:90%;animation-duration:6s;animation-delay:1.5s"></div>
-        <div class="menu-title">Mini Dash</div>
-        <div class="menu-subtitle">Geometry Rush</div>
+        <div class="menu-title">Quantum Dash</div>
+        <div class="menu-subtitle">Geometry Dust</div>
         <div class="main-actions">
+            <button class="icon-btn" onclick="openIconSelect()" title="Customize Icon">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="30" height="30"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            </button>
             <button class="big-play-btn" onclick="openLevelSelect()">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
-                    <path d="M8 5v14l11-7z" />
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>
                 <span>PLAY</span>
             </button>
             <button class="wrench-btn" onclick="openWorkshop()" title="Workshop">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-                    <path
-                        d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
             </button>
         </div>
+    </div>
+
+    <!-- ICON SELECT -->
+    <div id="iconSelect" class="overlay" style="display:none">
+        <div class="overlay-bg"></div>
+        <button class="ls-back" onclick="closeIconSelect()">&#8592; BACK</button>
+        <div class="ic-title">CUSTOMIZE ICON</div>
+        <div class="ic-tabs">
+            <button class="ic-tab active" id="tab-cube" onclick="icSetTab('cube')">CUBE</button>
+            <button class="ic-tab" id="tab-ship" onclick="icSetTab('ship')">SHIP</button>
+            <button class="ic-tab" id="tab-wave" onclick="icSetTab('wave')">WAVE</button>
+        </div>
+        <div class="ic-grid" id="icGrid"></div>
+        <div class="ic-colors" id="icSwatches"></div>
+        <button class="ic-done" onclick="closeIconSelect()">&#10003; DONE</button>
     </div>
 
     <!-- LEVEL SELECT -->
@@ -582,16 +291,11 @@
         <div class="ls-title">WORKSHOP</div>
         <div class="ws-buttons">
             <button class="ws-btn" onclick="openFolderUI()">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
-                    <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
                 MY LEVELS
             </button>
             <button class="ws-btn" onclick="openEditorFresh()">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36">
-                    <path
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm21.41-12.12l-3.54-3.54a2 2 0 00-2.83 0l-2.83 2.83 6.37 6.37 2.83-2.83a2 2 0 000-2.83z" />
-                </svg>
+                <svg viewBox="0 0 24 24" fill="currentColor" width="36" height="36"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm21.41-12.12l-3.54-3.54a2 2 0 00-2.83 0l-2.83 2.83 6.37 6.37 2.83-2.83a2 2 0 000-2.83z"/></svg>
                 NEW LEVEL
             </button>
         </div>
@@ -624,44 +328,44 @@
         const shipSprite = new Image(); shipSprite.src = "./sprites/ship.png";
         const waveSprite = new Image(); waveSprite.src = "./sprites/wave1.png";
 
-        function drawShipPortal(x, y, w, h) {
-            ctx.shadowColor = "#0ff"; ctx.shadowBlur = 12; ctx.strokeStyle = "#0ff"; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
-            ctx.shadowBlur = 0; ctx.fillStyle = "rgba(0,255,255,0.10)"; ctx.fillRect(x, y, w, h);
-            let cx = x + w / 2, cy = y + h / 2; ctx.fillStyle = "#0ff"; ctx.beginPath();
-            ctx.moveTo(cx + 12, cy); ctx.lineTo(cx - 9, cy - 7); ctx.lineTo(cx - 5, cy); ctx.lineTo(cx - 9, cy + 7);
-            ctx.closePath(); ctx.fill(); ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText("SHIP", cx, y + h - 6); ctx.textAlign = "left";
+        function drawShipPortal(x,y,w,h){
+            ctx.shadowColor="#0ff";ctx.shadowBlur=12;ctx.strokeStyle="#0ff";ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);
+            ctx.shadowBlur=0;ctx.fillStyle="rgba(0,255,255,0.10)";ctx.fillRect(x,y,w,h);
+            let cx=x+w/2,cy=y+h/2;ctx.fillStyle="#0ff";ctx.beginPath();
+            ctx.moveTo(cx+12,cy);ctx.lineTo(cx-9,cy-7);ctx.lineTo(cx-5,cy);ctx.lineTo(cx-9,cy+7);
+            ctx.closePath();ctx.fill();ctx.font="bold 9px sans-serif";ctx.textAlign="center";
+            ctx.fillText("SHIP",cx,y+h-6);ctx.textAlign="left";
         }
-        function drawWavePortal(x, y, w, h) {
-            ctx.shadowColor = "#fa0"; ctx.shadowBlur = 12; ctx.strokeStyle = "#fa0"; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
-            ctx.shadowBlur = 0; ctx.fillStyle = "rgba(255,170,0,0.10)"; ctx.fillRect(x, y, w, h);
-            let cx = x + w / 2, cy = y + h / 2; ctx.strokeStyle = "#fa0"; ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(cx - 12, cy); ctx.bezierCurveTo(cx - 6, cy - 8, cx, cy + 8, cx + 6, cy);
-            ctx.bezierCurveTo(cx + 9, cy - 5, cx + 12, cy - 2, cx + 12, cy); ctx.stroke();
-            ctx.fillStyle = "#fa0"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText("WAVE", cx, y + h - 6); ctx.textAlign = "left";
+        function drawWavePortal(x,y,w,h){
+            ctx.shadowColor="#fa0";ctx.shadowBlur=12;ctx.strokeStyle="#fa0";ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);
+            ctx.shadowBlur=0;ctx.fillStyle="rgba(255,170,0,0.10)";ctx.fillRect(x,y,w,h);
+            let cx=x+w/2,cy=y+h/2;ctx.strokeStyle="#fa0";ctx.lineWidth=2;ctx.beginPath();
+            ctx.moveTo(cx-12,cy);ctx.bezierCurveTo(cx-6,cy-8,cx,cy+8,cx+6,cy);
+            ctx.bezierCurveTo(cx+9,cy-5,cx+12,cy-2,cx+12,cy);ctx.stroke();
+            ctx.fillStyle="#fa0";ctx.font="bold 9px sans-serif";ctx.textAlign="center";
+            ctx.fillText("WAVE",cx,y+h-6);ctx.textAlign="left";
         }
-        function drawCubePortal(x, y, w, h) {
-            ctx.shadowColor = "#0f0"; ctx.shadowBlur = 12; ctx.strokeStyle = "#0f0"; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
-            ctx.shadowBlur = 0; ctx.fillStyle = "rgba(0,255,0,0.10)"; ctx.fillRect(x, y, w, h);
-            let cx = x + w / 2, cy = y + h / 2; ctx.strokeStyle = "#0f0"; ctx.lineWidth = 2; ctx.strokeRect(cx - 8, cy - 8, 16, 16);
-            ctx.fillStyle = "rgba(0,255,0,0.3)"; ctx.fillRect(cx - 8, cy - 8, 16, 16);
-            ctx.fillStyle = "#0f0"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
-            ctx.fillText("CUBE", cx, y + h - 6); ctx.textAlign = "left";
+        function drawCubePortal(x,y,w,h){
+            ctx.shadowColor="#0f0";ctx.shadowBlur=12;ctx.strokeStyle="#0f0";ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);
+            ctx.shadowBlur=0;ctx.fillStyle="rgba(0,255,0,0.10)";ctx.fillRect(x,y,w,h);
+            let cx=x+w/2,cy=y+h/2;ctx.strokeStyle="#0f0";ctx.lineWidth=2;ctx.strokeRect(cx-8,cy-8,16,16);
+            ctx.fillStyle="rgba(0,255,0,0.3)";ctx.fillRect(cx-8,cy-8,16,16);
+            ctx.fillStyle="#0f0";ctx.font="bold 9px sans-serif";ctx.textAlign="center";
+            ctx.fillText("CUBE",cx,y+h-6);ctx.textAlign="left";
         }
 
-        let spaceHeld = false, jumpConsumed = false;
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        resize(); window.addEventListener("resize", resize);
+        let spaceHeld=false,jumpConsumed=false;
+        function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+        resize();window.addEventListener("resize",resize);
 
-        const SPEED = 6, SIZE = 50, GRAVITY = 0.8, GROUND_Y = 100, ROT_SPEED = 6;
-        let mode = "cube";
-        const MAX_JUMP_HEIGHT = SIZE * 2.5;
-        let state = "menu", scrollX = 0, player, levelObjects = [], particles = [], waveTrail = [];
-        let jumpBuffer = 0, restartTimer = 0, finishX = 0, winTimer = 0;
+        const SPEED=6,SIZE=50,GRAVITY=0.8,GROUND_Y=100,ROT_SPEED=6;
+        let mode="cube";
+        const JUMP_VEL=13.5;
+        let state="menu",scrollX=0,player,levelObjects=[],particles=[],waveTrail=[];
+        let jumpBuffer=0,restartTimer=0,finishX=0,winTimer=0;
 
         // 10 built-in levels
-        const levels = [
+        const levels=[
             "spike 450 0 0, spike 700 0 0, spike 750 0 0, block 1000 0 0, block 1350 100 0, block 1350 50 0, block 1350 0 0, block 1200 0 0, block 1200 50 0, spike 1050 0 0, spike 1100 0 0, spike 1150 0 0, spike 1250 0 0, spike 1300 0 0, spike 1400 0 0, spike 1450 0 0, spike 1750 0 0, block 1800 0 0, block 1850 0 0, block 1900 0 0, block 2150 0 0, block 2200 0 0, block 2250 0 0, block 2400 50 0, block 2600 100 0, block 2750 150 0, spike 1950 0 0, spike 2000 0 0, block 2050 0 0, block 2100 0 0, spike 2300 0 0, spike 2350 0 0, spike 2400 0 0, spike 2450 0 0, spike 2500 0 0, spike 2550 0 0, spike 2600 0 0, spike 2650 0 0, spike 2700 0 0, spike 2750 0 0, spike 2800 0 0, block 2950 200 0, block 3050 50 0, block 3100 50 0, block 3150 50 0, block 3200 50 0, block 3250 50 0, block 3400 50 0, block 3350 50 0, block 3300 50 0, spike 3150 250 0, block 3150 200 0, block 3200 200 0, block 3250 200 0, block 3300 200 0, block 3300 150 0, block 3350 150 0, block 3400 150 0, block 3500 150 0, block 3450 150 0, block 3450 50 0, block 3500 50 0, block 3550 150 0, block 3550 200 0, block 3600 200 0, block 3650 200 0, block 3700 200 0, block 3550 50 0, block 3600 50 0, block 3650 50 0, block 3700 50 0, shipportal 3700 150 0, block 3700 250 0, block 3700 300 0, block 3700 350 0, block 4050 0 0, block 4450 0 0, block 4050 350 0, block 4450 350 0, spike 4100 0 0, spike 4150 0 0, spike 4200 0 0, spike 4350 0 0, spike 4400 0 0, spike 4400 350 180, spike 4350 350 180, spike 4200 350 180, spike 4150 350 180, spike 4100 350 180, block 3700 400 0, block 3750 400 0, block 3800 400 0, block 3850 400 0, block 3900 400 0, block 3950 400 0, block 4000 400 0, block 4050 400 0, block 4100 400 0, block 4150 400 0, block 4200 400 0, block 4250 400 0, block 4300 400 0, block 4350 400 0, block 4400 400 0, block 4450 400 0, block 4500 400 0, block 4550 400 0, block 4600 400 0, block 4650 400 0, block 4700 400 0, block 4750 400 0, block 4800 400 0, block 4850 400 0, block 4900 400 0, block 5000 400 0, block 4950 400 0, block 5000 350 0, block 5000 300 0, block 5000 250 0, block 4950 250 0, block 5050 400 0, block 5100 400 0, block 5200 400 0, block 5250 400 0, block 5150 400 0, block 5350 400 0, spike 4950 300 270, spike 4950 350 270, block 5300 400 0, block 5400 400 0, block 5450 400 0, block 5500 200 0, block 5550 200 0, block 5600 200 0, block 5650 200 0, block 5700 200 0, block 5750 200 0, block 5500 450 0, block 5550 500 0, block 5800 200 0, cubeportal 5800 150 0, cubeportal 5800 100 0, cubeportal 5800 50 0, spike 6050 0 0, spike 6100 0 0, spike 6300 0 0, spike 6350 0 0, spike 6500 0 0, spike 6550 0 0, spike 6750 0 0, spike 6850 0 0, spike 6800 0 0, block 5600 550 0, block 5650 600 0, block 5700 600 0, block 5750 600 0, block 5800 600 0, block 5850 600 0, block 5900 600 0, block 5950 600 0, block 5850 250 0, block 5900 300 0, block 5950 350 0, block 6000 400 0, block 6050 450 0, block 6100 450 0, block 6000 600 0, block 6050 600 0, block 6100 600 0, spike 6050 500 0, spike 6100 500 0, spike 6050 550 180, spike 6100 550 180, block 4750 0 0, block 4750 50 0, block 4750 100 0, block 5300 0 0, block 5300 50 0, block 5300 100 0, block 5300 150 0, spike 4250 0 0, spike 4300 0 0, spike 4250 350 180, spike 4300 350 180, block 6150 450 0, block 6200 450 0, block 6250 450 0, block 6300 450 0, block 6250 250 0, block 6250 300 0, block 6250 350 0, block 6300 300 0, block 6350 300 0, block 6350 350 0, block 6350 250 0, block 6500 250 0, block 6450 300 0, block 6450 350 0, block 6500 400 0, block 6550 350 0, block 6550 300 0, block 6650 400 0, block 6700 350 0, block 6750 300 0, block 6800 350 0, block 6850 300 0, block 6900 350 0, block 6950 400 0, block 6350 450 0, block 6400 500 0, block 6450 500 0, block 6500 500 0, block 6550 500 0, block 6600 500 0, block 6650 500 0, block 6700 500 0, block 6750 500 0, block 6800 500 0, block 6900 500 0, block 6850 500 0, block 6950 500 0, block 6150 600 0, block 6200 600 0, block 6250 650 0, block 6300 650 0, block 6400 650 0, block 6350 650 0, block 6450 650 0, block 6600 650 0, block 6500 650 0, block 6550 650 0, block 6650 650 0, block 6700 650 0, block 6750 650 0, block 6800 650 0, block 6850 650 0, block 6900 650 0, block 6950 650 0, spike 6650 550 0, spike 6350 500 0, block 7100 450 0, block 7150 500 0, block 7200 450 0, block 7200 400 0, block 7150 350 0, block 7150 300 0, block 7150 200 0",
             "block 400 0 0, block 400 50 0, block 450 50 0, block 500 50 0, block 550 50 0, block 550 0 0, jumppad 650 0 0, jumppad 700 0 0, block 800 0 0, block 800 50 0, block 800 100 0, block 850 100 0, block 900 100 0, block 950 100 0, block 1000 100 0, spike 1000 150 0, block 1100 150 0, block 1150 150 0, block 1250 200 0, block 1300 200 0, spike 1300 350 180, block 1300 400 0, spike 500 100 0, block 1300 450 0, block 1450 250 0, block 1450 200 0, block 1500 250 0, spike 1600 300 0, block 1550 250 0, block 1600 250 0, block 1650 250 180, block 1650 500 0, block 1600 500 0, block 1550 500 0, block 1500 500 0, block 1450 500 0, shipportal 1700 400 0, block 1700 450 0, spike 1850 400 180, spike 1900 400 180, spike 1850 300 0, spike 1900 300 0, block 1800 500 0, block 1850 450 0, block 1900 450 0, block 1850 250 0, block 1900 250 0, block 1700 300 0, spike 2150 350 180, spike 2200 300 180, spike 2250 250 180, spike 2150 150 0, spike 2200 100 0, spike 2250 50 0, block 1900 200 0, block 1950 150 0, block 2000 150 0, block 2050 150 0, block 2100 150 0, block 2100 100 0, block 2150 100 0, block 2150 50 0, block 2200 50 0, block 2200 0 0, block 2250 0 0, block 2250 300 0, block 2250 350 0, block 2200 350 0, block 2200 400 0, block 2150 400 0, block 2150 450 0, block 2100 450 0, block 2050 450 0, block 2000 450 0, block 1950 450 0, spike 2450 250 0, spike 2450 400 180, block 2300 350 0, block 2350 400 0, block 2300 400 0, block 2350 450 0, block 2400 450 0, block 2450 450 0, spike 2300 300 180, spike 2350 350 180, spike 2400 400 180, spike 2350 100 0, spike 2400 150 0, block 2350 0 0, block 2350 50 0, block 2400 50 0, block 2400 100 0, block 2450 200 0, block 2450 100 0, block 2450 150 0, block 2300 0 0, block 2300 50 0, block 1750 250 0, block 1800 250 0, block 1450 150 0, block 1750 500 0, spike 1750 300 0, spike 1750 450 180",
             "shipportal 150 50 0, block 400 0 0, block 450 50 0, block 500 100 0, block 150 100 0, block 200 100 0, block 550 150 0, block 600 200 0, block 500 400 0, block 450 350 0, block 400 300 0, block 350 250 0, block 300 200 0, block 250 150 0, block 550 450 0, block 600 500 0, block 650 550 0, block 650 250 0, block 700 300 0, block 750 350 0, block 800 400 0, block 700 600 0, block 750 650 0, block 800 700 0, block 850 700 0, block 900 650 0, block 950 600 0, block 1000 550 0, block 900 350 0, block 1050 500 0, block 850 400 0, block 950 300 0, block 1000 250 0, block 1050 250 0, block 1100 450 0, block 1250 250 0, cubeportal 1250 350 0, spike 1100 250 0, spike 1150 250 0, spike 1200 250 0, block 1050 200 0, block 1100 200 0, block 1150 200 0, block 1200 200 0, block 1250 200 0, block 1150 450 0, block 1200 450 0, block 1250 450 0, block 1300 450 0, block 1300 400 0, block 1300 250 0, block 1350 250 0, block 1450 250 0, block 1400 250 0, spike 1450 300 0, spike 1400 300 0, block 1500 250 0, jumppad 2300 300 270, block 1550 250 0, block 1600 250 0, block 1750 300 0, block 1800 300 0, block 1900 350 0, block 1950 350 0, jumppad 2150 300 90, jumppad 2050 300 270, block 2100 300 0, jumppad 2100 350 0, jumppad 2100 250 180, block 2350 300 0, jumppad 2350 350 0, jumppad 2400 300 90, jumppad 2350 250 180, block 2650 300 0, block 2700 300 0, block 2750 300 0, block 2800 300 0, block 2850 300 0, waveportal 2900 400 0, block 2850 450 0, block 2800 450 0, spike 2950 300 0, spike 3000 250 0, spike 3050 200 0, spike 3100 150 0, spike 3150 100 0, spike 3200 50 0, spike 3250 0 0, block 2900 300 0, block 2900 450 0, block 2950 250 0, block 3000 200 0, block 3050 150 0, block 3100 100 0, block 3150 50 0, block 3200 0 0, spike 2950 500 180, spike 3000 550 180, spike 3050 600 180, spike 3100 650 180, spike 3150 700 180, spike 3200 750 180, block 2950 550 0, block 3000 600 0, block 3050 650 0, block 3100 700 0, block 3150 750 0, block 3200 800 0, spike 3350 350 270, block 3400 350 0, block 3450 350 0, block 3500 350 0, block 3550 350 0, block 3600 350 0, block 3650 350 0, block 3700 350 0, block 3750 350 0, spike 3450 300 180, spike 3400 300 180, spike 3500 300 180, spike 3550 300 180, spike 3650 300 180, spike 3600 300 180, spike 3700 300 180, spike 3750 300 180, block 3800 350 0, block 3900 350 0, block 3850 350 0, block 3950 350 0, block 4000 350 0, block 4050 350 0, block 4100 350 0, block 4150 350 0, spike 4150 400 0, spike 4200 400 0, spike 4250 400 0, spike 4300 400 0, spike 4300 500 180, spike 4250 500 180, spike 4200 500 180, spike 4150 500 180, block 4200 350 0, block 4250 350 0, block 4300 350 0, block 4300 550 0, block 4250 550 0, block 4200 550 0, block 4150 550 0, block 3250 800 0, block 3300 750 0, block 3350 700 0, block 3400 700 0, block 3450 700 0, block 3500 650 0, block 3550 650 0, block 3600 650 0, block 3650 600 0, block 3700 600 0, block 3750 550 0, block 3800 550 0, block 3850 550 0, block 3900 550 0, block 3950 550 0, block 4000 550 0, block 4050 550 0, block 4100 550 0, cubeportal 4300 50 0, cubeportal 4300 100 0, cubeportal 4300 200 0, cubeportal 4300 250 0, cubeportal 4300 300 0, cubeportal 4300 150 0, spike 4750 0 0, spike 4700 0 0, spike 5200 0 0, spike 5450 0 0, spike 5500 0 0, spike 5550 0 0",
@@ -674,492 +378,717 @@
             "spike 450 200 180, spike 400 0 0, spike 450 0 0, spike 500 0 0, spike 500 200 180, spike 400 200 180, block 350 250 0, block 550 250 0, jumppad 400 250 180, jumppad 400 300 0, jumppad 500 250 180, jumppad 500 300 0, block 350 300 0, block 400 350 0, block 450 350 0, block 500 350 0, block 550 300 0, block 350 200 0, block 550 200 0, spike 450 300 180, spike 450 250 0, spike 350 350 0, spike 550 350 0, jumppad 700 0 0, spike 700 250 180, spike 750 300 180, spike 650 200 180, block 650 250 0, block 700 300 0, block 750 350 0, spike 950 200 180, spike 900 250 180, spike 850 300 180, spike 800 350 180, block 850 350 0, block 900 300 0, block 950 250 0, block 800 400 0, spike 800 150 0, block 800 100 0, block 800 50 0, spike 800 0 180, spike 850 100 90, spike 850 50 90, spike 750 100 270, spike 750 50 270, jumppad 1250 0 270, jumppad 1350 250 270, shipportal 1450 500 0, spike 1450 400 180, spike 1500 400 0, spike 1550 350 0, spike 1600 300 0, spike 1600 500 180, spike 1650 450 180, spike 1700 400 180, spike 1700 300 0, spike 1800 300 0, spike 1800 400 180, block 1700 450 0, block 1800 450 0, block 1600 250 0, block 1700 250 0, block 1800 250 0, spike 1900 300 0, spike 1900 400 180, spike 2000 300 0, spike 2100 300 0, spike 2000 400 180, spike 2100 400 180, block 1900 250 0, block 1900 450 0, spike 2150 400 270, spike 2300 200 0, spike 2300 450 180, spike 2400 250 0, spike 2400 400 180, spike 2500 350 180, spike 2500 250 0, spike 2550 250 0, spike 2550 350 180, spike 2600 350 180, spike 2600 250 0, block 2400 450 0, block 2500 400 0, block 2550 400 0, block 2600 400 0, block 2600 200 0, block 2550 200 0, block 2500 200 0, block 2450 200 0, block 2400 200 0, block 2400 150 0, block 2350 150 0, block 2300 150 0, block 2200 200 0, block 2050 250 0, block 2100 250 0, block 2000 250 0, block 1950 250 0, block 1850 250 0, block 1750 250 0, block 1650 250 0, block 1750 450 0, block 1850 450 0, block 1950 450 0, block 2000 450 0, block 2050 450 0, block 2100 450 0, block 2200 400 0, block 2150 450 0, block 2200 450 0, block 2450 450 0, block 2500 450 0, spike 1850 300 0, spike 1850 400 180, spike 1950 400 180, spike 1950 300 0, spike 2450 400 180, spike 2450 250 0, spike 2350 450 180, spike 2350 200 0, block 1600 550 0, block 1650 500 0, block 1650 550 0, block 1700 500 0, block 1550 300 0, block 1550 250 0, block 1500 350 0, block 2250 450 0, block 2150 200 0, block 2150 250 0, block 2250 200 0, block 2250 150 0, spike 1800 600 0, spike 1850 600 0, spike 1900 600 0, spike 1950 600 0, spike 2000 600 0, spike 2050 600 0, spike 2100 600 0, spike 2150 600 0, spike 2200 600 0, spike 2250 600 0, spike 2300 600 0, spike 2350 600 0, spike 2400 600 0, spike 2450 600 0, spike 2500 600 0, spike 2550 600 0, spike 2600 600 0, spike 1800 700 180, spike 1850 700 180, spike 1900 700 180, spike 1950 700 180, spike 2000 700 180, spike 2050 700 180, spike 2100 700 180, spike 2150 700 180, spike 2200 700 180, spike 2250 700 180, spike 2300 700 180, spike 2350 700 180, spike 2400 700 180, spike 2450 700 180, spike 2500 700 180, spike 2550 700 180, spike 2600 700 180, block 1800 550 0, block 1850 550 0, block 1900 550 0, block 1950 550 0, block 2000 550 0, block 2050 550 0, block 2100 550 0, block 2200 550 0, block 2150 550 0, block 2250 550 0, block 2300 550 0, block 2400 550 0, block 2350 550 0, block 2450 550 0, block 2500 550 0, block 2550 550 0, block 2600 550 0, block 2600 750 0, block 2550 750 0, block 2500 750 0, block 2450 750 0, block 2400 750 0, block 2300 750 0, block 2350 750 0, block 2250 750 0, block 2150 750 0, block 2200 750 0, block 2100 750 0, block 2050 750 0, block 2000 750 0, block 1950 750 0, block 1900 750 0, block 1850 750 0, block 1800 750 0, block 1750 750 0, block 1700 750 0, block 1650 750 0, block 1600 750 0, block 1550 750 0, block 1500 750 0, block 1600 600 0, block 2650 400 0, block 2650 550 0, block 1300 0 0, block 1400 250 0, block 1350 0 0, block 1350 50 0, block 1400 50 0, block 1400 100 0, block 1450 100 0, block 1450 150 0, block 1450 200 0, block 1450 250 0, block 1500 250 0, block 1500 300 0, spike 2250 250 0, spike 2200 250 0, spike 2250 400 180, spike 2650 350 180, block 2350 500 0, block 2300 500 0, block 2250 500 0, block 2400 500 0, block 2650 450 0, block 2650 500 0, block 2600 500 0, block 2600 450 0, block 2550 500 0, block 2550 450 0, block 2500 500 0, block 2450 500 0"
         ];
 
-        const levelMeta = [
-            { name: "the start...", desc: "learn the basics" },
-            { name: "back on track", desc: "discover antimatter" },
-            { name: "everything", desc: "im running out of descriptions" },
-            { name: "jumping house", desc: "seriously i dont have any more" },
-            { name: "ship test", desc: "^ cool level" },
-            { name: "wave test?", desc: "^ interesting level" },
-            { name: "a bunch of portals", desc: "^ fantastic level" },
-            { name: "squeeze tightly", desc: "i dont know anymore" },
-            { name: "deadlocked", desc: "interesting level..?" },
-            { name: "the end?", desc: "COOL LEVEL!!!!!!!!!" },
+        const levelMeta=[
+            {name:"the start...",    desc:"learn the basics"},
+            {name:"back on track",   desc:"discover antimatter"},
+            {name:"everything",      desc:"im running out of descriptions"},
+            {name:"jumping house",   desc:"seriously i dont have any more"},
+            {name:"ship test",       desc:"^ cool level"},
+            {name:"wave test?",      desc:"^ interesting level"},
+            {name:"a bunch of portals", desc:"^ fantastic level"},
+            {name:"squeeze tightly", desc:"i dont know anymore"},
+            {name:"deadlocked",      desc:"interesting level..?"},
+            {name:"the end?",        desc:"COOL LEVEL!!!!!!!!!"},
         ];
 
-        const customLevels = [];
+        const customLevels=[];
 
         // ---- LEVEL SELECT ----
-        let lsIndex = 0;
+        let lsIndex=0;
 
-        function buildLevelSelect() {
-            const allLevels = [...levels.map((l, i) => ({ code: l, meta: levelMeta[i] })),
-            ...customLevels.map((l, i) => ({ code: l, meta: { name: "CUSTOM " + (i + 1), desc: "Your creation" } }))];
-            const track = document.getElementById("lsTrack");
-            const dots = document.getElementById("lsDots");
-            track.innerHTML = ""; dots.innerHTML = "";
-            allLevels.forEach((lvl, i) => {
-                const card = document.createElement("div");
-                card.className = "ls-card";
-                card.innerHTML = `<div class="ls-card-inner">
-                    <div class="ls-card-num">LEVEL ${i + 1} / ${allLevels.length}</div>
+        function buildLevelSelect(){
+            const allLevels=[...levels.map((l,i)=>({code:l,meta:levelMeta[i]}))];
+            const track=document.getElementById("lsTrack");
+            const dots=document.getElementById("lsDots");
+            track.innerHTML=""; dots.innerHTML="";
+            allLevels.forEach((lvl,i)=>{
+                const card=document.createElement("div");
+                card.className="ls-card";
+                card.innerHTML=`<div class="ls-card-inner">
+                    <div class="ls-card-num">LEVEL ${i+1} / ${allLevels.length}</div>
                     <div class="ls-card-name">${lvl.meta.name}</div>
                     <div class="ls-card-desc">${lvl.meta.desc}</div>
                     <button class="ls-play-btn" onclick="launchLevel(${i})"><span>&#9654; PLAY</span></button>
                 </div>`;
                 track.appendChild(card);
-                const dot = document.createElement("div");
-                dot.className = "ls-dot" + (i === lsIndex ? " active" : "");
-                dot.onclick = () => lsGoTo(i);
+                const dot=document.createElement("div");
+                dot.className="ls-dot"+(i===lsIndex?" active":"");
+                dot.onclick=()=>lsGoTo(i);
                 dots.appendChild(dot);
             });
-            lsGoTo(lsIndex, false);
+            lsGoTo(lsIndex,false);
         }
 
-        function lsGoTo(i, animate = true) {
-            const allLen = levels.length + customLevels.length;
-            lsIndex = Math.max(0, Math.min(i, allLen - 1));
-            const track = document.getElementById("lsTrack");
-            track.style.transition = animate ? "transform 0.4s cubic-bezier(0.4,0,0.2,1)" : "none";
-            track.style.transform = `translateX(-${lsIndex * 100}vw)`;
-            document.querySelectorAll(".ls-dot").forEach((d, j) => d.classList.toggle("active", j === lsIndex));
+        function lsGoTo(i,animate=true){
+            const allLen=levels.length+customLevels.length;
+            lsIndex=Math.max(0,Math.min(i,allLen-1));
+            const track=document.getElementById("lsTrack");
+            track.style.transition=animate?"transform 0.4s cubic-bezier(0.4,0,0.2,1)":"none";
+            track.style.transform=`translateX(-${lsIndex*100}vw)`;
+            document.querySelectorAll(".ls-dot").forEach((d,j)=>d.classList.toggle("active",j===lsIndex));
         }
 
-        function lsScroll(dir) { lsGoTo(lsIndex + dir); }
+        function lsScroll(dir){lsGoTo(lsIndex+dir);}
 
-        function openLevelSelect() {
-            lsIndex = 0; buildLevelSelect();
+        function openLevelSelect(){
+            lsIndex=0; buildLevelSelect();
             navPush("levelSelect");
         }
-        function closeLevelSelect() { navPop(); }
+        function closeLevelSelect(){ navPop(); }
 
-        function launchLevel(i) {
-            const allLevels = [...levels, ...customLevels];
+        function launchLevel(i){
+            const allLevels=[...levels,...customLevels];
             hideAllOverlays();
             navStack.push("game");
-            state = "game"; scrollX = 0; winTimer = 0; restartTimer = 0;
-            levelObjects = parseLevel(allLevels[i]); spawnPlayer();
+            state="game"; scrollX=0; winTimer=0; restartTimer=0;
+            levelObjects=parseLevel(allLevels[i]); spawnPlayer();
+            ["cube","ship","wave"].forEach(m=>getOrCacheImg(m, icState[m].iconId));
         }
 
-        function openWorkshop() { navPush("workshop"); }
-        function closeWorkshop() { navPop(); }
+        function openWorkshop(){ navPush("workshop"); }
 
-        function openFolderUI() {
+        // ── ICON CUSTOMIZATION ──────────────────────────────────
+        const IC_MAX = { cube:484, ship:169, wave:43 };
+        const IC_FORM = { cube:"cube", ship:"ship", wave:"wave" };
+
+        const GD_COLORS = [
+            [0,"#7f7f7f"],[1,"#ff0000"],[2,"#ff7f00"],[3,"#ffff00"],[4,"#00ff00"],
+            [5,"#00ffff"],[6,"#0000ff"],[7,"#ff00ff"],[8,"#ff7fff"],[9,"#7fffff"],
+            [10,"#7fff7f"],[11,"#ff7f7f"],[12,"#ffffff"],[13,"#5a2d0c"],[14,"#00007f"],
+            [15,"#007f00"],[16,"#7f0000"],[17,"#7f3f00"],[18,"#003f3f"],[19,"#3f3f3f"],
+            [20,"#000000"],[21,"#ff4444"],[22,"#00ccff"],[23,"#00aa00"],[24,"#ff6600"],
+            [25,"#b06600"],[26,"#b000b0"],[27,"#600060"],[28,"#60ffff"],[29,"#ffff80"],
+            [30,"#80ff80"],[31,"#ff8080"],[32,"#ffc0c0"],[33,"#ffd880"],[34,"#fffdc0"],
+            [35,"#c0ffb0"],[36,"#ff8040"],[37,"#ff0040"],[38,"#40ff00"],[39,"#00ff80"],
+            [40,"#4040ff"],[41,"#8000ff"],[42,"#ff0080"],[43,"#c0c0c0"],
+        ];
+        function gdColorHex(id){ return (GD_COLORS[id]||GD_COLORS[0])[1]; }
+
+        const icState = {
+            cube: { iconId:1, col1:0, col2:3 },
+            ship: { iconId:1, col1:0, col2:6 },
+            wave: { iconId:1, col1:0, col2:7 },
+        };
+        let icTab = "cube";
+
+        // Cache of raw <img> loaded from gdbrowser (white col1, black col2 = default render)
+        const icImgCache = {};
+        // Cache of dual-tinted canvases keyed by mode_iconId_col1_col2
+        const icTintCache = {};
+
+        function gdIconUrl(mode, iconId){
+            // Fetch with col1=12 (white) and col2=20 (black) so we get clean light/dark layers
+            return `https://gdbrowser.com/icon/icon?form=${IC_FORM[mode]}&icon=${iconId}&col1=12&col2=20&glow=0`;
+        }
+
+        function getOrCacheImg(mode, iconId){
+            const key = `${mode}_${iconId}`;
+            if(!icImgCache[key]){
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = gdIconUrl(mode, iconId);
+                icImgCache[key] = img;
+            }
+            return icImgCache[key];
+        }
+
+        /**
+         * Dual-layer tint: 
+         *   - Bright pixels (luminance >= 128) → col1 tint (main body, white layer)
+         *   - Dark pixels   (luminance  < 128, alpha > 0) → col2 tint (outline/shadow layer)
+         * This splits the white and black parts of the icon into separate color channels.
+         */
+        function makeDualTinted(src, hex1, hex2, w, h){
+            // Draw source to an offscreen canvas so we can read pixels
+            const tmp = document.createElement("canvas");
+            tmp.width = w; tmp.height = h;
+            const tcx = tmp.getContext("2d");
+            tcx.drawImage(src, 0, 0, w, h);
+            const imageData = tcx.getImageData(0, 0, w, h);
+            const data = imageData.data;
+
+            // Parse target colors
+            function hexToRgb(hex){
+                const r = parseInt(hex.slice(1,3),16);
+                const g = parseInt(hex.slice(3,5),16);
+                const b = parseInt(hex.slice(5,7),16);
+                return [r,g,b];
+            }
+            const [r1,g1,b1] = hexToRgb(hex1);
+            const [r2,g2,b2] = hexToRgb(hex2);
+
+            for(let i = 0; i < data.length; i += 4){
+                const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+                if(a < 10) continue; // fully transparent, skip
+                // Luminance of this pixel
+                const lum = 0.299*r + 0.587*g + 0.114*b;
+                if(lum >= 100){
+                    // Bright pixel → col1, preserve relative brightness
+                    const t = lum / 255;
+                    data[i]   = Math.round(r1 * t);
+                    data[i+1] = Math.round(g1 * t);
+                    data[i+2] = Math.round(b1 * t);
+                } else {
+                    // Dark pixel → col2
+                    const t = (255 - lum) / 255;
+                    data[i]   = Math.round(r2 * t);
+                    data[i+1] = Math.round(g2 * t);
+                    data[i+2] = Math.round(b2 * t);
+                }
+            }
+
+            const out = document.createElement("canvas");
+            out.width = w; out.height = h;
+            const ocx = out.getContext("2d");
+            ocx.putImageData(imageData, 0, 0);
+            return out;
+        }
+
+        function clearTintCache(mode){
+            Object.keys(icTintCache).forEach(k=>{ if(k.startsWith(mode+"_")) delete icTintCache[k]; });
+        }
+
+        /**
+         * Returns tinted canvas for gameplay/preview; falls back to raw img if not loaded yet.
+         */
+        function getIconImage(m){
+            const s = icState[m];
+            const src = getOrCacheImg(m, s.iconId);
+            if(!src.complete || !src.naturalWidth) return src;
+            const key = `${m}_${s.iconId}_${s.col1}_${s.col2}`;
+            if(!icTintCache[key]){
+                icTintCache[key] = makeDualTinted(src, gdColorHex(s.col1), gdColorHex(s.col2), 96, 96);
+            }
+            return icTintCache[key];
+        }
+
+        function icSetTab(tab){
+            icTab = tab;
+            ["cube","ship","wave"].forEach(t=>
+                document.getElementById("tab-"+t).classList.toggle("active",t===tab));
+            icBuildGrid(); icBuildSwatches();
+        }
+
+        const IC_PAGE_SIZE = 12;
+        const icPage = { cube:0, ship:0, wave:0 };
+
+        function icBuildGrid(){
+            const grid = document.getElementById("icGrid");
+            grid.innerHTML = "";
+            const max = IC_MAX[icTab];
+            const page = icPage[icTab];
+            const start = page * IC_PAGE_SIZE + 1;
+            const end = Math.min(start + IC_PAGE_SIZE - 1, max);
+
+            // Nav row
+            const nav = document.createElement("div");
+            nav.style.cssText = "display:flex;align-items:center;gap:12px;margin-bottom:8px;";
+            const prevBtn = document.createElement("button");
+            prevBtn.className="ic-tab"; prevBtn.textContent="◀"; prevBtn.disabled=page===0;
+            prevBtn.onclick=()=>{ icPage[icTab]--; icBuildGrid(); };
+            const lbl = document.createElement("span");
+            lbl.style.cssText="font-family:Orbitron,sans-serif;font-size:11px;color:#888;letter-spacing:2px;";
+            lbl.textContent=`${start}–${end} / ${max}`;
+            const nextBtn = document.createElement("button");
+            nextBtn.className="ic-tab"; nextBtn.textContent="▶"; nextBtn.disabled=end>=max;
+            nextBtn.onclick=()=>{ icPage[icTab]++; icBuildGrid(); };
+            nav.append(prevBtn,lbl,nextBtn);
+            grid.appendChild(nav);
+
+            // Icon cells
+            const cellRow = document.createElement("div");
+            cellRow.style.cssText="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px;";
+            for(let id=start; id<=end; id++){
+                const cell = document.createElement("div");
+                cell.className="ic-cell"+(id===icState[icTab].iconId?" selected":"");
+                const cid = id;
+                cell.onclick=()=>{ icState[icTab].iconId=cid; icBuildGrid(); };
+
+                // Mini canvas preview — dual-tinted with current col1 + col2
+                const mc = document.createElement("canvas");
+                mc.width=64; mc.height=64; mc.style.cssText="display:block;";
+                const src = getOrCacheImg(icTab, id);
+                const col1hex = gdColorHex(icState[icTab].col1);
+                const col2hex = gdColorHex(icState[icTab].col2);
+                const paint = ()=>{
+                    const tinted = makeDualTinted(src, col1hex, col2hex, 64, 64);
+                    const cx = mc.getContext("2d");
+                    cx.clearRect(0,0,64,64);
+                    cx.drawImage(tinted,0,0,64,64);
+                };
+                if(src.complete && src.naturalWidth) paint();
+                else src.onload=paint;
+                cell.appendChild(mc);
+                cellRow.appendChild(cell);
+            }
+            grid.appendChild(cellRow);
+        }
+
+        function icBuildSwatches(){
+            const row = document.getElementById("icSwatches");
+            row.innerHTML="";
+            const makeRow=(label,which)=>{
+                const wrap=document.createElement("div");
+                wrap.style.cssText="display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:560px;";
+                const l=document.createElement("span"); l.className="ic-color-label"; l.textContent=label;
+                wrap.appendChild(l);
+                GD_COLORS.forEach(([id,hex])=>{
+                    const sw=document.createElement("div");
+                    sw.className="ic-swatch"+(id===icState[icTab][which]?" selected":"");
+                    sw.style.background=hex;
+                    sw.style.outline=id===12?"1px solid #555":"none";
+                    sw.title=`Color ${id}`;
+                    sw.onclick=()=>{
+                        icState[icTab][which]=id;
+                        icBuildSwatches();
+                        icBuildGrid(); // Rebuild grid so previews update with new colors
+                    };
+                    wrap.appendChild(sw);
+                });
+                return wrap;
+            };
+            row.appendChild(makeRow("COL 1","col1"));
+            const sp=document.createElement("div"); sp.style.height="6px"; row.appendChild(sp);
+            row.appendChild(makeRow("COL 2","col2"));
+        }
+
+        function openIconSelect(){
+            navPush("iconSelect");
+            icTab="cube";
+            ["cube","ship","wave"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("active",t==="cube"));
+            icBuildGrid(); icBuildSwatches();
+        }
+        function closeIconSelect(){ navPop(); }
+        function closeWorkshop(){ navPop(); }
+
+        function openFolderUI(){
             navPush("folderUI");
             renderFolderList();
         }
-        function closeFolderUI() { navPop(); }
-        function folderImport() {
-            let txt = document.getElementById("folderInput").value.trim();
-            if (!txt) return;
+        function closeFolderUI(){ navPop(); }
+        function folderImport(){
+            let txt=document.getElementById("folderInput").value.trim();
+            if(!txt)return;
             customLevels.push(txt);
-            document.getElementById("folderInput").value = "";
+            document.getElementById("folderInput").value="";
             renderFolderList();
         }
-        function renderFolderList() {
-            let div = document.getElementById("folderList");
-            div.innerHTML = "";
-            if (customLevels.length === 0) {
-                div.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-family:Orbitron,sans-serif;font-size:12px;letter-spacing:3px;text-align:center;padding:20px">NO CUSTOM LEVELS YET</div>';
+        function renderFolderList(){
+            let div=document.getElementById("folderList");
+            div.innerHTML="";
+            if(customLevels.length===0){
+                div.innerHTML='<div style="color:rgba(255,255,255,0.3);font-family:Orbitron,sans-serif;font-size:12px;letter-spacing:3px;text-align:center;padding:20px">NO CUSTOM LEVELS YET</div>';
                 return;
             }
-            customLevels.forEach((lvl, i) => {
-                let row = document.createElement("div"); row.className = "lvl-row";
-                let play = document.createElement("button"); play.className = "lvl-play";
-                play.textContent = "CUSTOM " + (i + 1);
-                play.onclick = () => {
+            customLevels.forEach((lvl,i)=>{
+                let row=document.createElement("div"); row.className="lvl-row";
+                let play=document.createElement("button"); play.className="lvl-play";
+                play.textContent="CUSTOM "+(i+1);
+                play.onclick=()=>{
                     hideAllOverlays(); navStack.push("game");
-                    state = "game"; scrollX = 0; winTimer = 0; restartTimer = 0;
-                    levelObjects = parseLevel(customLevels[i]); spawnPlayer();
+                    state="game";scrollX=0;winTimer=0;restartTimer=0;
+                    levelObjects=parseLevel(customLevels[i]);spawnPlayer();
                 };
-                let edit = document.createElement("button"); edit.className = "lvl-icon-btn edit";
-                edit.title = "Edit"; edit.textContent = "✏️";
-                edit.onclick = () => openEditorWithLevel(i);
-                let del = document.createElement("button"); del.className = "lvl-icon-btn del";
-                del.title = "Delete"; del.textContent = "🗑️";
-                del.onclick = () => { customLevels.splice(i, 1); renderFolderList(); };
+                let edit=document.createElement("button"); edit.className="lvl-icon-btn edit";
+                edit.title="Edit"; edit.textContent="✏️";
+                edit.onclick=()=>openEditorWithLevel(i);
+                let del=document.createElement("button"); del.className="lvl-icon-btn del";
+                del.title="Delete"; del.textContent="🗑️";
+                del.onclick=()=>{customLevels.splice(i,1);renderFolderList();};
                 row.appendChild(play); row.appendChild(edit); row.appendChild(del);
                 div.appendChild(row);
             });
         }
 
         // ---- NAV STACK ----
-        // Each entry is an overlay id (or "game"/"editor"). We always show only the top.
         const navStack = ["menu"];
-        const allOverlayIds = ["menu", "levelSelect", "workshop", "folderUI"];
+        const allOverlayIds = ["menu","levelSelect","workshop","folderUI","iconSelect"];
 
-        function hideAllOverlays() {
-            allOverlayIds.forEach(id => document.getElementById(id).style.display = "none");
+        function hideAllOverlays(){
+            allOverlayIds.forEach(id=>document.getElementById(id).style.display="none");
         }
 
-        function showScreen(id) {
+        function showScreen(id){
             hideAllOverlays();
-            if (allOverlayIds.includes(id)) document.getElementById(id).style.display = "flex";
+            if(allOverlayIds.includes(id)) document.getElementById(id).style.display="flex";
         }
 
-        function navPush(id) {
+        function navPush(id){
             navStack.push(id);
             showScreen(id);
         }
 
-        function navPop() {
-            // Special cleanup before popping
-            const current = navStack[navStack.length - 1];
-            if (current === "editor") {
-                if (editorEditingIndex >= 0) {
-                    let str = editorObjects.map(o => `${o.type} ${o.x} ${o.y} ${o.rotation || 0}`).join(", ");
-                    customLevels[editorEditingIndex] = str;
+        function navPop(){
+            const current = navStack[navStack.length-1];
+            if(current==="editor"){
+                if(editorEditingIndex>=0){
+                    let str=editorObjects.map(o=>`${o.type} ${o.x} ${o.y} ${o.rotation||0}`).join(", ");
+                    customLevels[editorEditingIndex]=str;
                 }
-                state = "menu";
+                state="menu";
             }
-            if (current === "game" || current === "dead" || current === "win") {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                state = "menu"; scrollX = 0; levelObjects = []; particles = []; waveTrail = [];
-                player = null; winTimer = 0; restartTimer = 0; jumpBuffer = 0;
-                spaceHeld = false; jumpConsumed = false;
+            if(current==="game" || current==="dead" || current==="win"){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                state="menu"; scrollX=0; levelObjects=[]; particles=[]; waveTrail=[];
+                player=null; winTimer=0; restartTimer=0; jumpBuffer=0;
+                spaceHeld=false; jumpConsumed=false;
             }
-            if (navStack.length > 1) navStack.pop();
-            const prev = navStack[navStack.length - 1];
-            if (prev === "folderUI") renderFolderList();
+            if(navStack.length>1) navStack.pop();
+            const prev = navStack[navStack.length-1];
+            if(prev==="folderUI") renderFolderList();
             showScreen(prev);
         }
 
         // ---- EDITOR ----
-        let editorScroll = 0, editorObjects = [], editorType = "block";
-        let selectedObj = null, exportNotice = 0, editorEditingIndex = -1;
-        const editorButtons = [{ type: "block" }, { type: "spike" }, { type: "jumppad" }, { type: "shipportal" }, { type: "cubeportal" }, { type: "waveportal" }];
-        const editorSpawn = { x: 150, y: 0 };
+        let editorScroll=0,editorObjects=[],editorType="block";
+        let selectedObj=null,exportNotice=0,editorEditingIndex=-1;
+        const editorButtons=[{type:"block"},{type:"spike"},{type:"jumppad"},{type:"shipportal"},{type:"cubeportal"},{type:"waveportal"}];
+        const editorSpawn={x:150,y:0};
 
-        function openEditorFresh() {
-            hideAllOverlays(); navStack.push("editor"); state = "editor";
-            editorObjects = []; editorScroll = 0; editorType = "block"; editorEditingIndex = -1;
+        function openEditorFresh(){
+            hideAllOverlays(); navStack.push("editor"); state="editor";
+            editorObjects=[]; editorScroll=0; editorType="block"; editorEditingIndex=-1;
         }
-        function openEditorWithLevel(i) {
-            hideAllOverlays(); navStack.push("editor"); state = "editor"; editorScroll = 0; editorType = "block";
-            editorObjects = parseLevel(customLevels[i]); editorEditingIndex = i;
+        function openEditorWithLevel(i){
+            hideAllOverlays(); navStack.push("editor"); state="editor"; editorScroll=0; editorType="block";
+            editorObjects=parseLevel(customLevels[i]); editorEditingIndex=i;
         }
 
         // ---- GAME CORE ----
-        function parseLevel(text) {
-            let objects = text.split(",").map(o => {
-                let [type, x, y, r] = o.trim().split(" ");
-                return { type, x: parseInt(x), y: parseInt(y), rotation: parseInt(r) || 0 };
+        function parseLevel(text){
+            let objects=text.split(",").map(o=>{
+                let [type,x,y,r]=o.trim().split(" ");
+                return{type,x:parseInt(x),y:parseInt(y),rotation:parseInt(r)||0};
             });
-            let maxX = 0; for (let obj of objects) maxX = Math.max(maxX, obj.x);
-            finishX = maxX + 150; return objects;
+            let maxX=0; for(let obj of objects)maxX=Math.max(maxX,obj.x);
+            finishX=maxX+150; return objects;
         }
 
-        function goToMenu() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            state = "menu"; scrollX = 0; levelObjects = []; particles = []; waveTrail = [];
-            player = null; winTimer = 0; restartTimer = 0; jumpBuffer = 0;
-            spaceHeld = false; jumpConsumed = false;
-            navStack.length = 0; navStack.push("menu");
+        function goToMenu(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            state="menu"; scrollX=0; levelObjects=[]; particles=[]; waveTrail=[];
+            player=null; winTimer=0; restartTimer=0; jumpBuffer=0;
+            spaceHeld=false; jumpConsumed=false;
+            navStack.length=0; navStack.push("menu");
             hideAllOverlays();
-            document.getElementById("menu").style.display = "flex";
+            document.getElementById("menu").style.display="flex";
         }
 
-        function spawnPlayer() {
-            player = { x: 150, y: canvas.height - GROUND_Y - SIZE, vy: 0, grounded: true, rotation: 0, visible: true };
-            mode = "cube"; jumpBuffer = 0; jumpConsumed = false; waveTrail = [];
+        function spawnPlayer(){
+            player={x:150,y:canvas.height-GROUND_Y-SIZE,vy:0,grounded:true,rotation:0,visible:true};
+            mode="cube"; jumpBuffer=0; jumpConsumed=false; waveTrail=[];
         }
 
-        function spawnParticles(x, y) {
-            for (let i = 0; i < 40; i++) {
-                let angle = Math.random() * Math.PI * 2, speed = Math.random() * 8 + 2;
-                particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 60 });
+        function spawnParticles(x,y){
+            for(let i=0;i<40;i++){
+                let angle=Math.random()*Math.PI*2,speed=Math.random()*8+2;
+                particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:60});
             }
         }
 
-        function die() {
-            if (state !== "game") return;
-            spawnParticles(player.x + SIZE / 2, player.y + SIZE / 2);
-            player.visible = false; state = "dead"; restartTimer = 120;
+        function die(){
+            if(state!=="game")return;
+            spawnParticles(player.x+SIZE/2,player.y+SIZE/2);
+            player.visible=false; state="dead"; restartTimer=120;
         }
 
         // ---- INPUT ----
-        document.addEventListener("keydown", e => {
-            if (e.code === "Space") {
-                if (!spaceHeld) { spaceHeld = true; jumpConsumed = false; if (state === "game" && mode === "cube") jumpBuffer = 8; }
+        document.addEventListener("keydown",e=>{
+            if(e.code==="Space"){
+                if(!spaceHeld){spaceHeld=true;jumpConsumed=false;if(state==="game"&&mode==="cube")jumpBuffer=8;}
             }
-            if (e.code === "Escape") {
+            if(e.code==="Escape"){
                 navPop();
             }
-            if (state === "editor") editorKey(e);
-            if (document.getElementById("levelSelect").style.display === "flex") {
-                if (e.key === "ArrowLeft" || e.key === "ArrowUp") lsScroll(-1);
-                if (e.key === "ArrowRight" || e.key === "ArrowDown") lsScroll(1);
+            if(state==="editor")editorKey(e);
+            if(document.getElementById("levelSelect").style.display==="flex"){
+                if(e.key==="ArrowLeft"||e.key==="ArrowUp")lsScroll(-1);
+                if(e.key==="ArrowRight"||e.key==="ArrowDown")lsScroll(1);
             }
         });
-        document.addEventListener("keyup", e => {
-            if (e.code === "Space") { spaceHeld = false; jumpConsumed = false; }
+        document.addEventListener("keyup",e=>{
+            if(e.code==="Space"){spaceHeld=false;jumpConsumed=false;}
         });
-        document.addEventListener("mousedown", e => {
-            if (state === "game") { if (!spaceHeld) { spaceHeld = true; jumpConsumed = false; if (mode === "cube") jumpBuffer = 8; } }
-            if (state === "editor") editorClick(e);
+        document.addEventListener("mousedown",e=>{
+            if(state==="game"){if(!spaceHeld){spaceHeld=true;jumpConsumed=false;if(mode==="cube")jumpBuffer=8;}}
+            if(state==="editor")editorClick(e);
         });
-        document.addEventListener("mouseup", e => {
-            if (state === "game") { spaceHeld = false; jumpConsumed = false; }
+        document.addEventListener("mouseup",e=>{
+            if(state==="game"){spaceHeld=false;jumpConsumed=false;}
         });
-        document.addEventListener("contextmenu", e => {
-            if (state === "editor") { e.preventDefault(); editorDelete(e); }
+        document.addEventListener("contextmenu",e=>{
+            if(state==="editor"){e.preventDefault();editorDelete(e);}
         });
-        document.addEventListener("wheel", e => {
-            if (document.getElementById("levelSelect").style.display === "flex") {
-                lsScroll(e.deltaY > 0 ? 1 : -1);
+        document.addEventListener("wheel",e=>{
+            if(document.getElementById("levelSelect").style.display==="flex"){
+                lsScroll(e.deltaY>0?1:-1);
             }
         });
 
         // ---- UPDATE ----
-        function update() {
-            if (state === "dead") { restartTimer--; if (restartTimer <= 0) { spawnPlayer(); scrollX = 0; state = "game"; } }
-            if (state === "win") { winTimer--; if (winTimer <= 0) { goToMenu(); return; } }
-            for (let p of particles) { p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.life--; }
-            particles = particles.filter(p => p.life > 0);
-            if (state !== "game") return;
+        function update(){
+            if(state==="dead"){restartTimer--;if(restartTimer<=0){spawnPlayer();scrollX=0;state="game";}}
+            if(state==="win"){winTimer--;if(winTimer<=0){goToMenu();return;}}
+            for(let p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.life--;}
+            particles=particles.filter(p=>p.life>0);
+            if(state!=="game")return;
 
-            scrollX += SPEED;
-            if (jumpBuffer > 0) jumpBuffer--;
-            for (let t of waveTrail) t.x -= SPEED;
+            scrollX+=SPEED;
+            if(jumpBuffer>0)jumpBuffer--;
+            for(let t of waveTrail)t.x-=SPEED;
 
-            const jumpForce = Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT);
+            const jumpForce=JUMP_VEL;
 
-            if (mode === "cube") {
-                if (spaceHeld && player.grounded && !jumpConsumed) jumpBuffer = 8;
-                if (jumpBuffer > 0 && player.grounded) { player.vy = -jumpForce; jumpBuffer = 0; jumpConsumed = true; }
-                player.vy += GRAVITY; player.y += player.vy;
+            if(mode==="cube"){
+                if(spaceHeld&&player.grounded&&!jumpConsumed)jumpBuffer=8;
+                if(jumpBuffer>0&&player.grounded){player.vy=-jumpForce;jumpBuffer=0;jumpConsumed=true;}
+                player.vy+=GRAVITY; player.y+=player.vy;
             }
-            if (mode === "ship") {
-                if (spaceHeld) player.vy -= 0.9; else player.vy += 0.6;
-                player.vy *= 0.92;
-                if (player.vy < -10) player.vy = -10; if (player.vy > 10) player.vy = 10;
-                player.y += player.vy;
-                player.rotation = Math.max(-25, Math.min(25, player.vy * 2.5));
-                if (player.y <= 0) { player.y = 0; player.vy = 0; }
+            if(mode==="ship"){
+                if(spaceHeld)player.vy-=0.9;else player.vy+=0.6;
+                player.vy*=0.92;
+                if(player.vy<-10)player.vy=-10;if(player.vy>10)player.vy=10;
+                player.y+=player.vy;
+                player.rotation=Math.max(-25,Math.min(25,player.vy*2.5));
+                if(player.y<=0){player.y=0;player.vy=0;}
             }
-            if (mode === "wave") {
-                player.vy = spaceHeld ? -7 : 7;
-                player.y += player.vy;
-                player.rotation = spaceHeld ? -45 : 45;
-                if (player.y <= 0) { die(); return; }
-                if (state === "game") {
-                    waveTrail.push({ x: player.x + 25, y: player.y + 25 });
-                    if (waveTrail.length > 84) waveTrail.shift();
+            if(mode==="wave"){
+                player.vy=spaceHeld?-7:7;
+                player.y+=player.vy;
+                player.rotation=spaceHeld?-45:45;
+                if(player.y<=0){die();return;}
+                if(state==="game"){
+                    waveTrail.push({x:player.x+25,y:player.y+25});
+                    if(waveTrail.length>84)waveTrail.shift();
                 }
             }
 
-            let landed = false, ground = canvas.height - GROUND_Y;
-            if (player.y + SIZE >= ground) {
-                if (mode === "wave") { die(); return; }
-                else { player.y = ground - SIZE; player.vy = 0; landed = true; }
+            let landed=false,ground=canvas.height-GROUND_Y;
+            if(player.y+SIZE>=ground){
+                if(mode==="wave"){die();return;}
+                else{player.y=ground-SIZE;player.vy=0;landed=true;}
             }
 
-            for (let obj of levelObjects) {
-                let x = obj.x - scrollX, y = canvas.height - GROUND_Y - obj.y - 50;
-                let hx = mode === "ship" ? player.x + 7 : (mode === "wave" ? player.x + 4 : player.x);
-                let hy = mode === "ship" ? player.y + 18 : (mode === "wave" ? player.y + 4 : player.y);
-                let hw = mode === "ship" ? 33 : (mode === "wave" ? 18 : SIZE);
-                let hh = mode === "ship" ? 15 : (mode === "wave" ? 18 : SIZE);
+            for(let obj of levelObjects){
+                let x=obj.x-scrollX, y=canvas.height-GROUND_Y-obj.y-50;
+                let hx=mode==="ship"?player.x+7:(mode==="wave"?player.x+4:player.x);
+                let hy=mode==="ship"?player.y+18:(mode==="wave"?player.y+4:player.y);
+                let hw=mode==="ship"?33:(mode==="wave"?18:SIZE);
+                let hh=mode==="ship"?15:(mode==="wave"?18:SIZE);
 
-                if (obj.type === "block") {
-                    let overlapX = hx + hw > x && hx < x + 50;
-                    if (mode === "wave") { if (overlapX && hy + hh > y && hy < y + 50) die(); }
-                    else if (overlapX && (hy + hh) - player.vy <= y && hy + hh >= y) {
-                        player.y = y - hh - (mode === "ship" ? 18 : 0); player.vy = 0; landed = true;
-                    } else if (overlapX && hy + hh > y && hy < y + 50) { die(); }
+                if(obj.type==="block"){
+                    let overlapX=hx+hw>x&&hx<x+50;
+                    if(mode==="wave"){if(overlapX&&hy+hh>y&&hy<y+50)die();}
+                    else if(overlapX&&(hy+hh)-player.vy<=y&&hy+hh>=y){
+                        player.y=y-hh-(mode==="ship"?18:0);player.vy=0;landed=true;
+                    }else if(overlapX&&hy+hh>y&&hy<y+50){die();}
                 }
-                if (obj.type === "waveportal") {
-                    if (hx + hw > x && hx < x + 50 && hy + hh > y && hy < y + 100 && mode !== "wave") {
-                        mode = "wave"; waveTrail = []; player.y = (y + 50) - SIZE / 2; player.vy = 0;
+                if(obj.type==="waveportal"){
+                    if(hx+hw>x&&hx<x+50&&hy+hh>y&&hy<y+100&&mode!=="wave"){
+                        mode="wave";waveTrail=[];player.y=(y+50)-SIZE/2;player.vy=0;
                     }
                 }
-                if (obj.type === "shipportal") {
-                    if (hx + hw > x && hx < x + 50 && hy + hh > y && hy < y + 100) { mode = "ship"; waveTrail = []; }
+                if(obj.type==="shipportal"){
+                    if(hx+hw>x&&hx<x+50&&hy+hh>y&&hy<y+100){mode="ship";waveTrail=[];}
                 }
-                if (obj.type === "cubeportal") {
-                    if (hx + hw > x && hx < x + 50 && hy + hh > y && hy < y + 100) {
-                        mode = "cube"; waveTrail = []; player.rotation = Math.round(player.rotation / 90) * 90;
+                if(obj.type==="cubeportal"){
+                    if(hx+hw>x&&hx<x+50&&hy+hh>y&&hy<y+100){
+                        mode="cube";waveTrail=[];player.rotation=Math.round(player.rotation/90)*90;
                     }
                 }
-                if (obj.type === "spike") {
-                    let sX = x + 21, sY = y + 22;
-                    if (hx + hw > sX && hx < sX + 6 && hy + hh > sY && hy < sY + 13) die();
+                if(obj.type==="spike"){
+                    let sX=x+21,sY=y+22;
+                    if(hx+hw>sX&&hx<sX+6&&hy+hh>sY&&hy<sY+13)die();
                 }
-                if (obj.type === "jumppad") {
-                    if (hx + hw > x && hx < x + 19 && hy + hh > y + 35 && hy < y + 40) {
-                        player.vy = -Math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT) * 1.4;
-                        spawnParticles(player.x + SIZE / 2, player.y + SIZE);
+                if(obj.type==="jumppad"){
+                    if(hx+hw>x&&hx<x+19&&hy+hh>y+35&&hy<y+40){
+                        player.vy=-JUMP_VEL*1.4;
+                        spawnParticles(player.x+SIZE/2,player.y+SIZE);
                     }
                 }
             }
 
-            if (player.grounded && !landed) jumpConsumed = false;
-            player.grounded = landed;
-            if (mode === "cube") {
-                if (!player.grounded) player.rotation += ROT_SPEED;
-                else player.rotation = Math.round(player.rotation / 90) * 90;
+            if(player.grounded&&!landed)jumpConsumed=false;
+            player.grounded=landed;
+            if(mode==="cube"){
+                if(!player.grounded)player.rotation+=ROT_SPEED;
+                else player.rotation=Math.round(player.rotation/90)*90;
             }
-            if (player.x + scrollX > finishX) { player.visible = false; state = "win"; winTimer = 120; }
+            if(player.x+scrollX>finishX){player.visible=false;state="win";winTimer=120;}
         }
 
         // ---- DRAW ----
-        function drawObj(obj, x, y) {
-            ctx.save(); ctx.translate(x + 25, y + 25); ctx.rotate(((obj.rotation || 0) * Math.PI) / 180); ctx.translate(-25, -25);
-            if (obj.type === "block") ctx.drawImage(blockSprite, 0, 0, 50, 50);
-            if (obj.type === "spike") ctx.drawImage(spikesprite, 0, 0, 50, 50);
-            if (obj.type === "jumppad") ctx.drawImage(jumppadsprite, 0, 35, 50, 15);
-            if (obj.type === "shipportal") drawShipPortal(0, 0, 50, 100);
-            if (obj.type === "cubeportal") drawCubePortal(0, 0, 50, 100);
-            if (obj.type === "waveportal") drawWavePortal(0, 0, 50, 100);
+        function drawObj(obj,x,y){
+            ctx.save();ctx.translate(x+25,y+25);ctx.rotate(((obj.rotation||0)*Math.PI)/180);ctx.translate(-25,-25);
+            if(obj.type==="block")ctx.drawImage(blockSprite,0,0,50,50);
+            if(obj.type==="spike")ctx.drawImage(spikesprite,0,0,50,50);
+            if(obj.type==="jumppad")ctx.drawImage(jumppadsprite,0,35,50,15);
+            if(obj.type==="shipportal")drawShipPortal(0,0,50,100);
+            if(obj.type==="cubeportal")drawCubePortal(0,0,50,100);
+            if(obj.type==="waveportal")drawWavePortal(0,0,50,100);
             ctx.restore();
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (state === "menu") return;
-            if (state === "editor") { drawEditor(); return; }
+        function draw(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            if(state==="menu")return;
+            if(state==="editor"){drawEditor();return;}
 
-            ctx.fillStyle = "#0a0015"; ctx.fillRect(0, 0, canvas.width, canvas.height - GROUND_Y);
-            ctx.fillStyle = "#0d0030"; ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, GROUND_Y);
-            ctx.shadowColor = "#f0f"; ctx.shadowBlur = 20; ctx.fillStyle = "#f0f";
-            ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, 3); ctx.shadowBlur = 0;
+            ctx.fillStyle="#0a0015";ctx.fillRect(0,0,canvas.width,canvas.height-GROUND_Y);
+            ctx.fillStyle="#0d0030";ctx.fillRect(0,canvas.height-GROUND_Y,canvas.width,GROUND_Y);
+            ctx.shadowColor="#f0f";ctx.shadowBlur=20;ctx.fillStyle="#f0f";
+            ctx.fillRect(0,canvas.height-GROUND_Y,canvas.width,3);ctx.shadowBlur=0;
 
-            for (let obj of levelObjects) {
-                let x = Math.floor(obj.x - scrollX), y = Math.floor(canvas.height - GROUND_Y - obj.y - 50);
-                drawObj(obj, x, y);
+            for(let obj of levelObjects){
+                let x=Math.floor(obj.x-scrollX),y=Math.floor(canvas.height-GROUND_Y-obj.y-50);
+                drawObj(obj,x,y);
             }
 
-            ctx.save(); ctx.shadowColor = "#ff0"; ctx.shadowBlur = 24; ctx.fillStyle = "#ff0";
-            ctx.fillRect(finishX - scrollX, 0, 4, canvas.height); ctx.shadowBlur = 0; ctx.restore();
+            ctx.save();ctx.shadowColor="#ff0";ctx.shadowBlur=24;ctx.fillStyle="#ff0";
+            ctx.fillRect(finishX-scrollX,0,4,canvas.height);ctx.shadowBlur=0;ctx.restore();
 
-            for (let p of particles) { ctx.globalAlpha = p.life / 60; ctx.fillStyle = "white"; ctx.fillRect(p.x, p.y, 4, 4); }
-            ctx.globalAlpha = 1;
+            for(let p of particles){ctx.globalAlpha=p.life/60;ctx.fillStyle="white";ctx.fillRect(p.x,p.y,4,4);}
+            ctx.globalAlpha=1;
 
-            if (mode === "wave") {
-                ctx.fillStyle = "white"; ctx.shadowColor = "white"; ctx.shadowBlur = 4;
-                for (let t of waveTrail) ctx.fillRect(t.x - 12.5, t.y - 12.5, 25, 25);
-                ctx.shadowBlur = 0;
+            if(mode==="wave"){
+                ctx.fillStyle="white";ctx.shadowColor="white";ctx.shadowBlur=4;
+                for(let t of waveTrail)ctx.fillRect(t.x-12.5,t.y-12.5,25,25);
+                ctx.shadowBlur=0;
             }
 
-            if (player && player.visible) {
+            if(player&&player.visible){
                 ctx.save();
-                ctx.translate(player.x + SIZE / 2, player.y + SIZE / 2);
-                ctx.rotate(player.rotation * Math.PI / 180);
-                if (mode === "cube") ctx.drawImage(cubeSprite, -SIZE / 2, -SIZE / 2, SIZE, SIZE);
-                else if (mode === "wave") ctx.drawImage(waveSprite, -25, -20, 50, 40);
-                else ctx.drawImage(shipSprite, -30, -25, 60, 50);
+                ctx.translate(player.x+SIZE/2,player.y+SIZE/2);
+                ctx.rotate(player.rotation*Math.PI/180);
+                const ic = getIconImage(mode);
+                const col2hex = gdColorHex(icState[mode].col2);
+
+                // Col2 glow pass (drawn behind, acts as colored bloom)
+                ctx.save();
+                ctx.shadowColor = col2hex;
+                ctx.shadowBlur = 18;
+                ctx.globalAlpha = 0.7;
+                if(mode==="cube") ctx.drawImage(ic,-SIZE/2,-SIZE/2,SIZE,SIZE);
+                else if(mode==="wave") ctx.drawImage(ic,-25,-20,50,40);
+                else ctx.drawImage(ic,-25,-25,50,50);
+                ctx.restore();
+
+                // Actual icon draw on top
+                if(mode==="cube") ctx.drawImage(ic,-SIZE/2,-SIZE/2,SIZE,SIZE);
+                else if(mode==="wave") ctx.drawImage(ic,-25,-20,50,40);
+                else ctx.drawImage(ic,-25,-25,50,50);
+
                 ctx.restore();
             }
 
-            if (state === "win") {
-                ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.save(); ctx.textAlign = "center";
-                ctx.font = "bold 72px Orbitron,sans-serif"; ctx.shadowColor = "#0ff"; ctx.shadowBlur = 40; ctx.fillStyle = "#fff";
-                ctx.fillText("LEVEL COMPLETE!", canvas.width / 2, canvas.height / 2 - 20); ctx.shadowBlur = 0;
-                ctx.font = "20px Orbitron,sans-serif"; ctx.fillStyle = "#f0f"; ctx.shadowColor = "#f0f"; ctx.shadowBlur = 15;
-                ctx.fillText("Returning to menu...", canvas.width / 2, canvas.height / 2 + 40);
-                ctx.shadowBlur = 0; ctx.restore(); ctx.textAlign = "left";
+            if(state==="win"){
+                ctx.fillStyle="rgba(0,0,0,0.55)";ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.save();ctx.textAlign="center";
+                ctx.font="bold 72px Orbitron,sans-serif";ctx.shadowColor="#0ff";ctx.shadowBlur=40;ctx.fillStyle="#fff";
+                ctx.fillText("LEVEL COMPLETE!",canvas.width/2,canvas.height/2-20);ctx.shadowBlur=0;
+                ctx.font="20px Orbitron,sans-serif";ctx.fillStyle="#f0f";ctx.shadowColor="#f0f";ctx.shadowBlur=15;
+                ctx.fillText("Returning to menu...",canvas.width/2,canvas.height/2+40);
+                ctx.shadowBlur=0;ctx.restore();ctx.textAlign="left";
             }
 
-            ctx.save(); ctx.font = "bold 13px Orbitron,sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.3)";
-            ctx.fillText("ESC — MENU", 16, 26); ctx.restore();
+            ctx.save();ctx.font="bold 13px Orbitron,sans-serif";ctx.fillStyle="rgba(255,255,255,0.3)";
+            ctx.fillText("ESC — MENU",16,26);ctx.restore();
         }
 
-        function drawEditor() {
-            const gridSize = 50, GRID_Y_OFFSET = 62;
-            ctx.fillStyle = "#0a0015"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            let offsetX = ((editorScroll % gridSize) + gridSize) % gridSize;
-            ctx.strokeStyle = "rgba(255,0,255,0.12)"; ctx.lineWidth = 1;
-            for (let x = -offsetX; x < canvas.width; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-            let offsetY = GRID_Y_OFFSET % gridSize;
-            for (let y = -offsetY; y < canvas.height; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
-            ctx.save(); ctx.shadowColor = "#f0f"; ctx.shadowBlur = 16; ctx.fillStyle = "#f0f";
-            ctx.fillRect(0, canvas.height - GROUND_Y, canvas.width, 3); ctx.shadowBlur = 0; ctx.restore();
-            ctx.fillStyle = "#0d0030"; ctx.fillRect(0, canvas.height - GROUND_Y + 3, canvas.width, GROUND_Y);
+        function drawEditor(){
+            const gridSize=50,GRID_Y_OFFSET=62;
+            ctx.fillStyle="#0a0015";ctx.fillRect(0,0,canvas.width,canvas.height);
+            let offsetX=((editorScroll%gridSize)+gridSize)%gridSize;
+            ctx.strokeStyle="rgba(255,0,255,0.12)";ctx.lineWidth=1;
+            for(let x=-offsetX;x<canvas.width;x+=gridSize){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+            let offsetY=GRID_Y_OFFSET%gridSize;
+            for(let y=-offsetY;y<canvas.height;y+=gridSize){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+            ctx.save();ctx.shadowColor="#f0f";ctx.shadowBlur=16;ctx.fillStyle="#f0f";
+            ctx.fillRect(0,canvas.height-GROUND_Y,canvas.width,3);ctx.shadowBlur=0;ctx.restore();
+            ctx.fillStyle="#0d0030";ctx.fillRect(0,canvas.height-GROUND_Y+3,canvas.width,GROUND_Y);
 
-            for (let obj of editorObjects) {
-                let x = Math.floor(obj.x - editorScroll), y = Math.floor(canvas.height - GROUND_Y - obj.y - 50);
-                drawObj(obj, x, y);
-                if (obj === selectedObj) {
-                    ctx.save(); ctx.strokeStyle = "#0ff"; ctx.shadowColor = "#0ff"; ctx.shadowBlur = 12;
-                    ctx.lineWidth = 2; ctx.strokeRect(x - 3, y - 3, 56, 56); ctx.shadowBlur = 0; ctx.restore();
+            for(let obj of editorObjects){
+                let x=Math.floor(obj.x-editorScroll),y=Math.floor(canvas.height-GROUND_Y-obj.y-50);
+                drawObj(obj,x,y);
+                if(obj===selectedObj){
+                    ctx.save();ctx.strokeStyle="#0ff";ctx.shadowColor="#0ff";ctx.shadowBlur=12;
+                    ctx.lineWidth=2;ctx.strokeRect(x-3,y-3,56,56);ctx.shadowBlur=0;ctx.restore();
                 }
             }
-            ctx.save(); ctx.shadowColor = "#0ff"; ctx.shadowBlur = 10; ctx.strokeStyle = "#0ff"; ctx.lineWidth = 2;
-            ctx.strokeRect(editorSpawn.x - editorScroll, canvas.height - GROUND_Y - editorSpawn.y - 50, 50, 50);
-            ctx.shadowBlur = 0; ctx.restore();
+            ctx.save();ctx.shadowColor="#0ff";ctx.shadowBlur=10;ctx.strokeStyle="#0ff";ctx.lineWidth=2;
+            ctx.strokeRect(editorSpawn.x-editorScroll,canvas.height-GROUND_Y-editorSpawn.y-50,50,50);
+            ctx.shadowBlur=0;ctx.restore();
 
-            let barY = canvas.height - 80;
-            ctx.fillStyle = "rgba(5,0,20,0.95)"; ctx.fillRect(0, barY, canvas.width, 80);
-            ctx.save(); ctx.shadowColor = "#f0f"; ctx.shadowBlur = 14; ctx.fillStyle = "#f0f";
-            ctx.fillRect(0, barY, canvas.width, 2); ctx.shadowBlur = 0; ctx.restore();
+            let barY=canvas.height-80;
+            ctx.fillStyle="rgba(5,0,20,0.95)";ctx.fillRect(0,barY,canvas.width,80);
+            ctx.save();ctx.shadowColor="#f0f";ctx.shadowBlur=14;ctx.fillStyle="#f0f";
+            ctx.fillRect(0,barY,canvas.width,2);ctx.shadowBlur=0;ctx.restore();
 
-            editorButtons.forEach((b, i) => {
-                let bx = 20 + i * 74, by = barY + 14, active = editorType === b.type;
-                ctx.fillStyle = active ? "rgba(0,255,255,0.15)" : "rgba(255,255,255,0.03)"; ctx.fillRect(bx, by, 52, 52);
-                ctx.save(); ctx.shadowColor = active ? "#0ff" : "#555"; ctx.shadowBlur = active ? 12 : 0;
-                ctx.strokeStyle = active ? "#0ff" : "#444"; ctx.lineWidth = 2; ctx.strokeRect(bx, by, 52, 52);
-                ctx.shadowBlur = 0; ctx.restore();
-                if (b.type === "block") ctx.drawImage(blockSprite, bx + 1, by + 1, 50, 50);
-                if (b.type === "spike") ctx.drawImage(spikesprite, bx + 1, by + 1, 50, 50);
-                if (b.type === "jumppad") ctx.drawImage(jumppadsprite, bx + 1, by + 36, 50, 15);
-                if (b.type === "shipportal") drawShipPortal(bx + 1, by + 6, 50, 40);
-                if (b.type === "cubeportal") drawCubePortal(bx + 1, by + 6, 50, 40);
-                if (b.type === "waveportal") drawWavePortal(bx + 1, by + 6, 50, 40);
+            editorButtons.forEach((b,i)=>{
+                let bx=20+i*74,by=barY+14,active=editorType===b.type;
+                ctx.fillStyle=active?"rgba(0,255,255,0.15)":"rgba(255,255,255,0.03)";ctx.fillRect(bx,by,52,52);
+                ctx.save();ctx.shadowColor=active?"#0ff":"#555";ctx.shadowBlur=active?12:0;
+                ctx.strokeStyle=active?"#0ff":"#444";ctx.lineWidth=2;ctx.strokeRect(bx,by,52,52);
+                ctx.shadowBlur=0;ctx.restore();
+                if(b.type==="block")ctx.drawImage(blockSprite,bx+1,by+1,50,50);
+                if(b.type==="spike")ctx.drawImage(spikesprite,bx+1,by+1,50,50);
+                if(b.type==="jumppad")ctx.drawImage(jumppadsprite,bx+1,by+36,50,15);
+                if(b.type==="shipportal")drawShipPortal(bx+1,by+6,50,40);
+                if(b.type==="cubeportal")drawCubePortal(bx+1,by+6,50,40);
+                if(b.type==="waveportal")drawWavePortal(bx+1,by+6,50,40);
             });
 
-            ctx.save(); ctx.font = "bold 13px Orbitron,sans-serif"; ctx.fillStyle = "#0ff"; ctx.shadowColor = "#0ff"; ctx.shadowBlur = 8;
-            ctx.fillText("A/D  SCROLL    RMB  ERASE    Q/E  ROTATE    X  EXPORT    ESC  MENU", 20, barY - 12);
-            ctx.shadowBlur = 0; ctx.restore();
+            ctx.save();ctx.font="bold 13px Orbitron,sans-serif";ctx.fillStyle="#0ff";ctx.shadowColor="#0ff";ctx.shadowBlur=8;
+            ctx.fillText("A/D  SCROLL    RMB  ERASE    Q/E  ROTATE    X  EXPORT    ESC  MENU",20,barY-12);
+            ctx.shadowBlur=0;ctx.restore();
 
-            if (exportNotice > 0) {
-                exportNotice--; let alpha = Math.min(1, exportNotice / 20);
-                ctx.save(); ctx.globalAlpha = alpha; ctx.font = "bold 18px Orbitron,sans-serif";
-                ctx.fillStyle = "#0f0"; ctx.shadowColor = "#0f0"; ctx.shadowBlur = 20; ctx.textAlign = "center";
-                ctx.fillText("✓ COPIED TO CLIPBOARD", canvas.width / 2, barY - 16);
-                ctx.shadowBlur = 0; ctx.textAlign = "left"; ctx.restore();
-            }
-        }
-
-        function editorClick(e) {
-            let barY = canvas.height - 80;
-            if (e.clientY > barY) {
-                editorButtons.forEach((b, i) => {
-                    let bx = 20 + i * 74, by = barY + 14;
-                    if (e.clientX > bx && e.clientX < bx + 52 && e.clientY > by && e.clientY < by + 52) editorType = b.type;
-                }); return;
-            }
-            let x = Math.floor((e.clientX + editorScroll) / 50) * 50;
-            let y = Math.floor((canvas.height - e.clientY - GROUND_Y) / 50) * 50;
-            let hit = editorObjects.find(o => o.x === x && o.y === y);
-            if (hit) { selectedObj = hit; } else { selectedObj = null; editorObjects.push({ type: editorType, x, y, rotation: 0 }); }
-        }
-        function editorDelete(e) {
-            let barY = canvas.height - 80; if (e.clientY > barY) return;
-            let x = Math.floor((e.clientX + editorScroll) / 50) * 50;
-            let y = Math.floor((canvas.height - e.clientY - GROUND_Y) / 50) * 50;
-            editorObjects = editorObjects.filter(o => !(o.x === x && o.y === y));
-        }
-        function editorKey(e) {
-            if (e.key === "a" || e.key === "A") editorScroll -= 100;
-            if (e.key === "d" || e.key === "D") editorScroll += 100;
-            if (e.key === "x" || e.key === "X") {
-                let str = editorObjects.map(o => `${o.type} ${o.x} ${o.y} ${o.rotation || 0}`).join(", ");
-                navigator.clipboard.writeText(str).then(() => { exportNotice = 120; });
-                if (editorEditingIndex >= 0) customLevels[editorEditingIndex] = str;
-            }
-            if (selectedObj) {
-                if (e.key === "q" || e.key === "Q") selectedObj.rotation = ((selectedObj.rotation || 0) - 90 + 360) % 360;
-                if (e.key === "e" || e.key === "E") selectedObj.rotation = ((selectedObj.rotation || 0) + 90) % 360;
+            if(exportNotice>0){
+                exportNotice--;let alpha=Math.min(1,exportNotice/20);
+                ctx.save();ctx.globalAlpha=alpha;ctx.font="bold 18px Orbitron,sans-serif";
+                ctx.fillStyle="#0f0";ctx.shadowColor="#0f0";ctx.shadowBlur=20;ctx.textAlign="center";
+                ctx.fillText("✓ COPIED TO CLIPBOARD",canvas.width/2,barY-16);
+                ctx.shadowBlur=0;ctx.textAlign="left";ctx.restore();
             }
         }
 
-        function loop() {
-            try { update(); draw(); } catch (err) { console.error("Game loop error:", err); goToMenu(); }
+        function editorClick(e){
+            let barY=canvas.height-80;
+            if(e.clientY>barY){
+                editorButtons.forEach((b,i)=>{
+                    let bx=20+i*74,by=barY+14;
+                    if(e.clientX>bx&&e.clientX<bx+52&&e.clientY>by&&e.clientY<by+52)editorType=b.type;
+                });return;
+            }
+            let x=Math.floor((e.clientX+editorScroll)/50)*50;
+            let y=Math.floor((canvas.height-e.clientY-GROUND_Y)/50)*50;
+            let hit=editorObjects.find(o=>o.x===x&&o.y===y);
+            if(hit){selectedObj=hit;}else{selectedObj=null;editorObjects.push({type:editorType,x,y,rotation:0});}
+        }
+        function editorDelete(e){
+            let barY=canvas.height-80;if(e.clientY>barY)return;
+            let x=Math.floor((e.clientX+editorScroll)/50)*50;
+            let y=Math.floor((canvas.height-e.clientY-GROUND_Y)/50)*50;
+            editorObjects=editorObjects.filter(o=>!(o.x===x&&o.y===y));
+        }
+        function editorKey(e){
+            if(e.key==="a"||e.key==="A")editorScroll-=100;
+            if(e.key==="d"||e.key==="D")editorScroll+=100;
+            if(e.key==="x"||e.key==="X"){
+                let str=editorObjects.map(o=>`${o.type} ${o.x} ${o.y} ${o.rotation||0}`).join(", ");
+                navigator.clipboard.writeText(str).then(()=>{exportNotice=120;});
+                if(editorEditingIndex>=0)customLevels[editorEditingIndex]=str;
+            }
+            if(selectedObj){
+                if(e.key==="q"||e.key==="Q")selectedObj.rotation=((selectedObj.rotation||0)-90+360)%360;
+                if(e.key==="e"||e.key==="E")selectedObj.rotation=((selectedObj.rotation||0)+90)%360;
+            }
+        }
+
+        function loop(){
+            try{update();draw();}catch(err){console.error("Game loop error:",err);goToMenu();}
             requestAnimationFrame(loop);
         }
         loop();
     </script>
 </body>
-
 </html>
