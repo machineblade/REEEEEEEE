@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chess</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --light: #F0D9B5;
+    --dark:  #B58863;
+    --highlight: rgba(255, 215, 0, 0.55);
+    --legal: rgba(20, 20, 20, 0.22);
+    --bg: #1a1a1a;
+    --panel: #111;
+    --text: #e8dcc8;
+    --accent: #c8a96e;
+    --danger: #c0392b;
+    --check: rgba(220, 50, 50, 0.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 20px;
+  }
+
+  /* ── LEFT PANEL ── */
+  #panel {
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+
+  h1 span { display: block; font-size: 0.75rem; color: #888; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.12em; margin-top: 4px; font-weight: 400; }
+
+  #status-box {
+    background: var(--panel);
+    border: 1px solid #2e2e2e;
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  #status-label {
+    font-size: 0.68rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  #status-text {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.82rem;
+  }
+
+  #turn-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  #turn-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: white;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  #turn-dot.black { background: #222; border: 1.5px solid #888; }
+
+  #turn-text { font-size: 0.75rem; color: #aaa; }
+
+  #move-list-box {
+    background: var(--panel);
+    border: 1px solid #2e2e2e;
+    border-radius: 6px;
+    padding: 14px;
+    flex: 1;
+    min-height: 120px;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  #move-list-box::-webkit-scrollbar { width: 4px; }
+  #move-list-box::-webkit-scrollbar-track { background: transparent; }
+  #move-list-box::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  .move-list-label {
+    font-size: 0.68rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  #moves {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+    font-size: 0.72rem;
+    color: #aaa;
+  }
+
+  .move-num { color: #555; margin-right: 3px; }
+  .move-entry { padding: 1px 0; }
+  .move-entry:last-child { color: var(--text); }
+
+  button {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    padding: 9px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s, color 0.2s;
+  }
+  button:hover { background: var(--accent); color: #111; }
+  button.active { background: var(--accent); color: #111; }
+  button.active:hover { background: #a8893e; }
+
+  /* ── BOARD WRAPPER ── */
+  #board-wrap {
+    position: relative;
+    user-select: none;
+  }
+
+  #coords-file {
+    display: flex;
+    padding: 0 0 0 24px;
+    margin-bottom: 2px;
+  }
+
+  #coords-rank {
+    position: absolute;
+    left: 0; top: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .coord {
+    width: 20px; height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #666;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .coord-file {
+    width: 70px; height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #666;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(8, 70px);
+    grid-template-rows: repeat(8, 70px);
+    border: 2px solid #2a2a2a;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    margin-left: 24px;
+  }
+
+  .sq {
+    width: 70px; height: 70px;
+    position: relative;
+    cursor: default;
+  }
+
+  .sq.light { background: var(--light); }
+  .sq.dark  { background: var(--dark); }
+  .sq.selected { background: var(--highlight) !important; }
+  .sq.last-move { background: rgba(255,210,60,0.32) !important; }
+  .sq.in-check::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--check);
+    pointer-events: none;
+  }
+
+  .sq.legal-target::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--legal);
+    pointer-events: none;
+  }
+
+  .sq.legal-capture::after {
+    content: '';
+    position: absolute; inset: 0;
+    border: 4px solid rgba(20,20,20,0.25);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .piece {
+    width: 70px; height: 70px;
+    position: absolute;
+    top: 0; left: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: grab;
+    transition: transform 0.05s;
+    z-index: 2;
+  }
+
+  .piece.dragging {
+    cursor: grabbing;
+    opacity: 0.85;
+    transform: scale(1.12);
+    z-index: 999;
+    pointer-events: none;
+    position: fixed;
+  }
+
+  .piece.engine-anim {
+    transition: all 0.18s ease;
+  }
+
+  /* ── PROMOTION PICKER ── */
+  #promo-picker {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+  }
+  #promo-picker.show { display: flex; }
+  #promo-box {
+    background: #111;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+  }
+  #promo-box p {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+  #promo-choices {
+    display: flex;
+    gap: 8px;
+  }
+  .promo-piece {
+    width: 70px; height: 70px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    transition: border-color 0.15s;
+  }
+  .promo-piece:hover { border-color: var(--accent); }
+  #overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlay.show { display: flex; }
+  #overlay-box {
+    background: #111;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 40px 50px;
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    position: relative;
+  }
+  #overlay-close {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: color 0.15s;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  #overlay-close:hover { color: var(--text); background: transparent; }
+  #overlay-title {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  #overlay-sub {
+    font-size: 0.85rem;
+    color: #aaa;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div id="panel">
+  <div>
+    <h1>Chess<span>vs. Stockfish</span></h1>
+  </div>
+
+  <div id="status-box">
+    <div id="status-label">Status</div>
+    <div id="status-text">Your move</div>
+    <div id="turn-indicator">
+      <div id="turn-dot"></div>
+      <div id="turn-text">White to move</div>
+    </div>
+  </div>
+
+  <div id="move-list-box">
+    <div class="move-list-label">Moves</div>
+    <div id="moves"></div>
+  </div>
+
+  <button id="new-game-btn">New Game</button>
+  <button id="switch-btn">Switch Sides</button>
+  <button id="solo-btn">Play by Yourself</button>
+  <button id="illegal-btn">Disable Illegal Moves</button>
+</div>
+
+<!-- BOARD -->
+<div id="board-wrap">
+  <div id="coords-file">
+    <div class="coord-file">a</div><div class="coord-file">b</div>
+    <div class="coord-file">c</div><div class="coord-file">d</div>
+    <div class="coord-file">e</div><div class="coord-file">f</div>
+    <div class="coord-file">g</div><div class="coord-file">h</div>
+  </div>
+  <div id="coords-rank">
+    <div class="coord">8</div><div class="coord">7</div>
+    <div class="coord">6</div><div class="coord">5</div>
+    <div class="coord">4</div><div class="coord">3</div>
+    <div class="coord">2</div><div class="coord">1</div>
+  </div>
+  <div id="board"></div>
+  <svg id="arrow-layer" style="position:absolute;top:24px;left:24px;width:560px;height:560px;pointer-events:none;z-index:10;" viewBox="0 0 560 560"></svg>
+</div>
+
+<!-- PROMOTION PICKER -->
+<div id="promo-picker">
+  <div id="promo-box">
+    <p>Promote pawn to</p>
+    <div id="promo-choices"></div>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div id="overlay">
+  <div id="overlay-box">
+    <button id="overlay-close">✕</button>
+    <div id="overlay-title">Game Over</div>
+    <div id="overlay-sub" id="overlay-sub"></div>
+    <button id="overlay-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- chess.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script>
+// PIECE URLS
+const BASE = "https://images.chesscomfiles.com/chess-themes/pieces/neo/150/";
+function pieceUrl(c, t) { return BASE + c + t + ".png"; }
+
+// STATE
+let chess        = new Chess();
+let selected     = null;
+let legalSquares = [];
+let lastMove     = null;
+let engineBusy   = false;
+let dragState    = null;
+let moveHistory  = [];
+let soloMode     = false;
+let illegalMode  = false;
+let engine       = null;
+let playerColor  = "w";   // "w" or "b" — which side the human plays
+
+// ENGINE
+function initEngine() {
+  fetch("https://cdn.jsdelivr.net/npm/stockfish.js@10.0.2/stockfish.js")
+    .then(r => r.text())
+    .then(code => {
+      const blob = new Blob([code], { type: "application/javascript" });
+      engine = new Worker(URL.createObjectURL(blob));
+      engine.onmessage = onEngineMsg;
+      engine.onerror   = () => { engine = null; };
+      engine.postMessage("uci");
+    })
+    .catch(() => { engine = null; });
+}
+
+function askEngine() {
+  if (!engine) { setTimeout(randomMove, 400); return; }
+  engine.postMessage("position fen " + chess.fen());
+  engine.postMessage("go depth 15");
+}
+
+function onEngineMsg(e) {
+  if (!e.data.startsWith("bestmove")) return;
+  const mv = e.data.split(" ")[1];
+  if (!mv || mv === "(none)") { engineBusy = false; return; }
+
+  const from = mv.slice(0,2), to = mv.slice(2,4);
+
+  // Never let engine capture a king
+  const board = chess.board();
+  const tr = 8 - parseInt(to[1]), tc = to.charCodeAt(0) - 97;
+  const target = board[tr][tc];
+  if (target && target.type === "k") { engineBusy = false; return; }
+
+  const result = chess.move({ from, to, promotion: mv[4]||"q" });
+  if (result) {
+    lastMove = { from, to };
+    moveHistory.push(result.san);
+    renderBoard(); updatePanel(); checkGameOver();
+  }
+  engineBusy = false;
+}
+
+function randomMove() {
+  const board = chess.board();
+  const moves = chess.moves({ verbose: true }).filter(mv => {
+    const tr = 8 - parseInt(mv.to[1]), tc = mv.to.charCodeAt(0) - 97;
+    const target = board[tr][tc];
+    return !(target && target.type === "k");
+  });
+  if (!moves.length) { engineBusy = false; return; }
+  const mv = moves[Math.floor(Math.random() * moves.length)];
+  const result = chess.move(mv);
+  if (result) {
+    lastMove = { from: mv.from, to: mv.to };
+    moveHistory.push(result.san);
+    renderBoard(); updatePanel(); checkGameOver();
+  }
+  engineBusy = false;
+}
+
+// ILLEGAL MODE
+// In illegal mode: any piece can go to any square. We rewrite the FEN directly,
+// completely bypassing chess.js validation (so king captures and promotion squares work).
+const FILES = "abcdefgh";
+const ALL_SQUARES = [];
+for (let r = 8; r >= 1; r--) for (const f of FILES) ALL_SQUARES.push(f + r);
+
+function getLegalSquares(sq) {
+  const board = chess.board();
+  const fr = 8 - parseInt(sq[1]), fc = sq.charCodeAt(0) - 97;
+  const piece = board[fr][fc];
+
+  if (illegalMode) {
+    return ALL_SQUARES.filter(s => {
+      if (s === sq) return false;
+      const tr = 8 - parseInt(s[1]), tc = s.charCodeAt(0) - 97;
+      const target = board[tr][tc];
+      // Cannot capture king
+      if (target && target.type === "k") return false;
+      // Pawns cannot move to promotion rank (rank 8 for white, rank 1 for black)
+      if (piece && piece.type === "p") {
+        const toRank = parseInt(s[1]);
+        if (piece.color === "w" && toRank === 8) return false;
+        if (piece.color === "b" && toRank === 1) return false;
+      }
+      return true;
+    });
+  }
+
+  // Normal mode: filter out king captures (chess.js 0.10.x doesn't block them)
+  return chess.moves({ square: sq, verbose: true })
+    .filter(m => {
+      const tr = 8 - parseInt(m.to[1]), tc = m.to.charCodeAt(0) - 97;
+      const target = board[tr][tc];
+      return !(target && target.type === "k");
+    })
+    .map(m => m.to);
+}
+
+function applyIllegalMove(from, to) {
+  const board = chess.board();
+  const fr = 8 - parseInt(from[1]), fc = from.charCodeAt(0) - 97;
+  const tr = 8 - parseInt(to[1]),   tc = to.charCodeAt(0) - 97;
+  const piece = board[fr][fc];
+  if (!piece) return false;
+
+  const nb = board.map(row => row.map(p => p ? {...p} : null));
+  nb[tr][tc] = piece;
+  nb[fr][fc] = null;
+
+  let pos = "";
+  for (let r = 0; r < 8; r++) {
+    let empty = 0;
+    for (let c = 0; c < 8; c++) {
+      const p = nb[r][c];
+      if (!p) { empty++; }
+      else { if (empty) { pos += empty; empty = 0; } pos += p.color === "w" ? p.type.toUpperCase() : p.type; }
+    }
+    if (empty) pos += empty;
+    if (r < 7) pos += "/";
+  }
+
+  const next = chess.turn() === "w" ? "b" : "w";
+  chess.load(pos + " " + next + " - - 0 1");
+  return true;
+}
+
+// DOM
+const boardEl      = document.getElementById("board");
+const statusText   = document.getElementById("status-text");
+const turnDot      = document.getElementById("turn-dot");
+const turnText_el  = document.getElementById("turn-text");
+const movesEl      = document.getElementById("moves");
+const overlay      = document.getElementById("overlay");
+const overlayTitle = document.getElementById("overlay-title");
+const overlaySub   = document.getElementById("overlay-sub");
+
+function setStatus(msg) { statusText.textContent = msg; }
+function setTurn(color) {
+  turnDot.className = color === "b" ? "black" : "";
+  turnText_el.textContent = color === "w" ? "White to move" : "Black to move";
+}
+
+function updatePanel() {
+  setTurn(chess.turn());
+  if (!chess.game_over()) {
+    if      (soloMode)    setStatus("Your move");
+    else if (engineBusy)  setStatus(engine ? "Engine thinking…" : "Opponent thinking…");
+    else                  setStatus("Your move");
+  }
+  movesEl.innerHTML = "";
+  for (let i = 0; i < moveHistory.length; i++) {
+    if (i % 2 === 0) {
+      const el = document.createElement("span");
+      el.className = "move-entry";
+      el.textContent = (i/2+1) + ". " + moveHistory[i];
+      movesEl.appendChild(el);
+    } else {
+      movesEl.lastChild.textContent += "  " + moveHistory[i];
+    }
+  }
+  document.getElementById("move-list-box").scrollTop = 9999;
+}
+
+// RENDER
+function renderBoard() {
+  boardEl.innerHTML = "";
+  const board    = chess.board();
+  const legalSet = new Set(legalSquares);
+
+  let checkSq = null;
+  if (chess.in_check()) {
+    const turn = chess.turn();
+    outer: for (let r = 0; r < 8; r++)
+      for (let c = 0; c < 8; c++) {
+        const p = board[r][c];
+        if (p && p.type === "k" && p.color === turn) { checkSq = FILES[c]+(8-r); break outer; }
+      }
+  }
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const sq   = FILES[c] + (8 - r);
+      const sqEl = document.createElement("div");
+      sqEl.className = "sq " + ((r+c)%2===0 ? "light" : "dark");
+      sqEl.dataset.sq = sq;
+
+      if (sq === selected) sqEl.classList.add("selected");
+      if (lastMove && (sq === lastMove.from || sq === lastMove.to)) sqEl.classList.add("last-move");
+      if (sq === checkSq)  sqEl.classList.add("in-check");
+
+      const piece = board[r][c];
+      if (legalSet.has(sq)) sqEl.classList.add(piece ? "legal-capture" : "legal-target");
+
+      if (piece) {
+        const pieceEl = document.createElement("div");
+        pieceEl.className = "piece";
+        pieceEl.style.backgroundImage = "url(" + pieceUrl(piece.color, piece.type) + ")";
+        pieceEl.dataset.sq    = sq;
+        pieceEl.dataset.color = piece.color;
+        const myTurn  = soloMode || (piece.color === chess.turn() && piece.color === playerColor);
+        const canDrag = myTurn && !engineBusy && !chess.game_over();
+        if (canDrag) pieceEl.addEventListener("mousedown", onPieceMouseDown);
+        sqEl.appendChild(pieceEl);
+      }
+
+      sqEl.addEventListener("click", onSquareClick);
+      boardEl.appendChild(sqEl);
+    }
+  }
+}
+
+// ARROWS
+const arrowSvg = document.getElementById("arrow-layer");
+let arrows = [];          // [ {from, to}, ... ]
+let arrowStart = null;    // square where right-click began
+
+function sqCenter(sq) {
+  const c = sq.charCodeAt(0) - 97;
+  const r = 8 - parseInt(sq[1]);
+  return { x: c * 70 + 35, y: r * 70 + 35 };
+}
+
+function renderArrows() {
+  arrowSvg.innerHTML = "";
+  // defs for arrowhead
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.innerHTML = `<marker id="ah" markerWidth="4" markerHeight="4" refX="2.5" refY="2" orient="auto">
+    <path d="M0,0 L4,2 L0,4 Z" fill="#f6f669" opacity="0.95"/>
+  </marker>`;
+  arrowSvg.appendChild(defs);
+
+  for (const { from, to } of arrows) {
+    if (from === to) continue;
+    const a = sqCenter(from), b = sqCenter(to);
+    // shorten the line so it doesn't overlap the arrowhead
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ex = b.x - dx/len * 18, ey = b.y - dy/len * 18;
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", a.x); line.setAttribute("y1", a.y);
+    line.setAttribute("x2", ex);  line.setAttribute("y2", ey);
+    line.setAttribute("stroke", "#f6f669");
+    line.setAttribute("stroke-width", "9");
+    line.setAttribute("stroke-opacity", "0.85");
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("marker-end", "url(#ah)");
+    arrowSvg.appendChild(line);
+  }
+}
+
+// Right-click arrow drawing — attach to the board wrapper
+document.getElementById("board-wrap").addEventListener("mousedown", e => {
+  if (e.button !== 2) return;
+  const sqEl = e.target.closest("[data-sq]");
+  arrowStart = sqEl ? sqEl.dataset.sq : null;
+});
+
+document.getElementById("board-wrap").addEventListener("mouseup", e => {
+  if (e.button !== 2) return;
+  if (!arrowStart) return;
+  const sqEl = e.target.closest("[data-sq]");
+  const arrowEnd = sqEl ? sqEl.dataset.sq : null;
+  if (arrowEnd && arrowEnd !== arrowStart) {
+    // Toggle: if arrow already exists remove it, otherwise add it
+    const idx = arrows.findIndex(a => a.from === arrowStart && a.to === arrowEnd);
+    if (idx >= 0) arrows.splice(idx, 1);
+    else arrows.push({ from: arrowStart, to: arrowEnd });
+    renderArrows();
+  }
+  arrowStart = null;
+});
+
+document.getElementById("board-wrap").addEventListener("contextmenu", e => e.preventDefault());
+
+// Any left-click anywhere on the board clears all arrows
+document.getElementById("board-wrap").addEventListener("mousedown", e => {
+  if (e.button !== 0) return;
+  arrows = []; renderArrows();
+});
+
+// CLICK vs DRAG distinction
+// mousedown records position; if mouse moves > 4px before mouseup → drag, else → click
+const DRAG_THRESHOLD = 4;
+
+function onPieceMouseDown(e) {
+  if (e.button !== 0) return;
+  if (engineBusy || chess.game_over()) return;
+  e.preventDefault();
+
+  const sq      = e.currentTarget.dataset.sq;
+  const rect    = e.currentTarget.getBoundingClientRect();
+  const startX  = e.clientX, startY = e.clientY;
+  let   isDrag  = false;
+  let   ghost   = null;
+
+  // Select piece & show dots immediately
+  selected     = sq;
+  legalSquares = getLegalSquares(sq);
+  renderBoard();
+
+  function onMove(ev) {
+    if (!isDrag) {
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (Math.sqrt(dx*dx + dy*dy) < DRAG_THRESHOLD) return;
+      // Crossed threshold — become a drag
+      isDrag = true;
+      ghost = document.createElement("div");
+      ghost.className = "piece dragging";
+      ghost.style.backgroundImage = e.currentTarget.style.backgroundImage || "url(" + pieceUrl(
+        e.currentTarget.dataset.color,
+        // get type from board
+        (()=>{ const b=chess.board(); const rr=8-parseInt(sq[1]); const cc=sq.charCodeAt(0)-97; return b[rr][cc]?b[rr][cc].type:"q"; })()
+      ) + ")";
+      ghost.style.width  = rect.width  + "px";
+      ghost.style.height = rect.height + "px";
+      document.body.appendChild(ghost);
+    }
+    if (ghost) {
+      ghost.style.left = (ev.clientX - rect.width/2)  + "px";
+      ghost.style.top  = (ev.clientY - rect.height/2) + "px";
+    }
+  }
+
+  function onUp(ev) {
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup",   onUp);
+
+    if (isDrag) {
+      // --- DRAG DROP ---
+      if (ghost) ghost.remove();
+      const el     = document.elementFromPoint(ev.clientX, ev.clientY);
+      const sqEl   = el ? el.closest("[data-sq]") : null;
+      const target = sqEl ? sqEl.dataset.sq : null;
+      if (target && target !== sq && legalSquares.includes(target)) {
+        doMove(sq, target);
+      } else {
+        // dropped nowhere valid — keep selection+dots
+        renderBoard();
+      }
+    }
+    // If not a drag: it was a click — dots are already showing, let onSquareClick handle target clicks
+  }
+
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup",   onUp);
+}
+
+// CLICK TO MOVE (handles clicking a dot or another piece)
+function onSquareClick(e) {
+  if (e.button !== 0) return;
+  if (engineBusy || chess.game_over()) return;
+  if (!soloMode && chess.turn() !== playerColor) return;
+
+  const sq    = e.currentTarget.dataset.sq;
+  const board = chess.board();
+
+  // If clicking a legal target → move
+  if (selected && legalSquares.includes(sq)) {
+    doMove(selected, sq);
+    return;
+  }
+
+  // If clicking an empty square or enemy with nothing selected → clear
+  const r     = 8 - parseInt(sq[1]);
+  const c     = sq.charCodeAt(0) - 97;
+  const piece = board[r][c];
+  const color = chess.turn();
+
+  if (piece && (soloMode || piece.color === color)) {
+    // clicking a different own piece → reselect (mousedown already set this for pieces,
+    // but handle squares without pieces too)
+    selected     = sq;
+    legalSquares = getLegalSquares(sq);
+    renderBoard();
+  } else if (!piece || (piece && !legalSquares.includes(sq))) {
+    selected = null; legalSquares = []; renderBoard();
+  }
+}
+
+// PROMOTION PICKER
+function isPromoMove(from, to) {
+  const board = chess.board();
+  const fr = 8 - parseInt(from[1]), fc = from.charCodeAt(0) - 97;
+  const piece = board[fr][fc];
+  return piece && piece.type === "p" && (to[1] === "8" || to[1] === "1");
+}
+
+function showPromoPicker(color, callback) {
+  const picker  = document.getElementById("promo-picker");
+  const choices = document.getElementById("promo-choices");
+  choices.innerHTML = "";
+  for (const type of ["q","r","b","n"]) {
+    const div = document.createElement("div");
+    div.className = "promo-piece";
+    div.style.backgroundImage = "url(" + pieceUrl(color, type) + ")";
+    div.addEventListener("click", () => {
+      picker.classList.remove("show");
+      callback(type);
+    });
+    choices.appendChild(div);
+  }
+  picker.classList.add("show");
+}
+
+// MAKE MOVE
+function doMove(from, to) {
+  if (illegalMode) {
+    // FEN rewrite — skips ALL rules
+    if (!applyIllegalMove(from, to)) { selected = null; legalSquares = []; renderBoard(); return; }
+    finishMove(from, to, from + "→" + to);
+  } else if (isPromoMove(from, to)) {
+    // Show picker, then execute with chosen piece
+    const color = chess.turn();
+    selected = null; legalSquares = []; renderBoard();
+    showPromoPicker(color, (promoType) => {
+      const result = chess.move({ from, to, promotion: promoType });
+      if (!result) return;
+      finishMove(from, to, result.san);
+    });
+  } else {
+    const result = chess.move({ from, to, promotion: "q" });
+    if (!result) { selected = null; legalSquares = []; renderBoard(); return; }
+    finishMove(from, to, result.san);
+  }
+}
+
+function finishMove(from, to, san) {
+  lastMove     = { from, to };
+  moveHistory.push(san);
+  selected     = null;
+  legalSquares = [];
+  engineBusy   = true;
+
+  renderBoard(); updatePanel();
+
+  if (checkGameOver()) { engineBusy = false; return; }
+  if (soloMode) { engineBusy = false; updatePanel(); return; }
+
+  setStatus(engine ? "Engine thinking…" : "Opponent thinking…");
+  setTimeout(askEngine, 250);
+}
+
+// GAME OVER
+function checkGameOver() {
+  if (!chess.game_over()) return false;
+  let title = "Draw", sub = "";
+  if (chess.in_checkmate()) { title = chess.turn() === playerColor ? "You Lose" : "You Win!"; sub = "Checkmate"; }
+  else if (chess.in_stalemate())            { sub = "Stalemate"; }
+  else if (chess.in_threefold_repetition()) { sub = "Threefold Repetition"; }
+  else if (chess.insufficient_material())   { sub = "Insufficient Material"; }
+  else if (chess.in_draw())                 { sub = "50-Move Rule"; }
+  overlayTitle.textContent = title;
+  overlaySub.textContent   = sub;
+  setStatus(title + (sub ? " — " + sub : ""));
+  overlay.classList.add("show");
+  return true;
+}
+
+// NEW GAME
+function newGame() {
+  chess = new Chess(); selected = null; legalSquares = [];
+  lastMove = null; engineBusy = false; moveHistory = [];
+  overlay.classList.remove("show");
+  renderBoard(); updatePanel();
+}
+
+// BUTTONS
+document.getElementById("new-game-btn").addEventListener("click", newGame);
+document.getElementById("overlay-btn").addEventListener("click", newGame);
+document.getElementById("overlay-close").addEventListener("click", () => {
+  overlay.classList.remove("show");
+});
+
+document.getElementById("switch-btn").addEventListener("click", () => {
+  playerColor = playerColor === "w" ? "b" : "w";
+  const btn = document.getElementById("switch-btn");
+  btn.classList.toggle("active", playerColor === "b");
+  btn.textContent = playerColor === "b" ? "Playing as Black" : "Switch Sides";
+  // If it's now the engine's turn (player just switched to black on a fresh game), fire engine
+  if (!soloMode && chess.turn() !== playerColor && !engineBusy && !chess.game_over()) {
+    engineBusy = true;
+    setStatus(engine ? "Engine thinking…" : "Opponent thinking…");
+    setTimeout(askEngine, 250);
+  }
+  renderBoard(); updatePanel();
+});
+
+document.getElementById("solo-btn").addEventListener("click", () => {
+  soloMode = !soloMode;
+  document.getElementById("solo-btn").classList.toggle("active", soloMode);
+  document.querySelector("h1 span").textContent = soloMode ? "Free Play" : "vs. Stockfish";
+  engineBusy = false; renderBoard(); updatePanel();
+});
+
+document.getElementById("illegal-btn").addEventListener("click", () => {
+  illegalMode = !illegalMode;
+  document.getElementById("illegal-btn").classList.toggle("active", illegalMode);
+  selected = null; legalSquares = []; renderBoard();
+});
+
+// START
+initEngine(); renderBoard(); updatePanel();
+</script>
+</body>
+</html>
