@@ -15,10 +15,7 @@ body {
   color: #f5f5f5;
 }
 
-/* top bar */
-.geodash-thumb {
-  left: 350px;
-}
+/* ── TOP BAR ── */
 .topbar {
   position: fixed;
   inset: 0 0 auto 0;
@@ -33,15 +30,13 @@ body {
   max-width: 1100px;
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* use flex-start, push right side with margin-left */
+  justify-content: flex-start;
   padding: 10px 18px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(14px);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
 }
-
-/* left: SUPREME 1 + buttons */
 
 .topbar-left-group {
   display: flex;
@@ -60,8 +55,6 @@ body {
   gap: 8px;
 }
 
-/* nav buttons */
-
 .nav-button {
   padding: 6px 16px;
   border-radius: 999px;
@@ -72,10 +65,7 @@ body {
   font-size: 0.8rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition:
-    background 0.2s ease,
-    transform 0.1s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .nav-button:hover {
@@ -88,13 +78,12 @@ body {
   background: rgba(255, 255, 255, 0.22);
 }
 
-/* user dropdown */
-
+/* ── USER DROPDOWN ── */
 .user-menu {
   position: relative;
   display: flex;
   align-items: center;
-  margin-left: auto; /* push username to far right */
+  margin-left: auto;
 }
 
 .user-toggle {
@@ -109,10 +98,7 @@ body {
   cursor: pointer;
   font-size: 0.8rem;
   letter-spacing: 0.5px;
-  transition:
-    background 0.2s ease,
-    transform 0.1s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 .user-toggle:hover {
@@ -125,8 +111,6 @@ body {
   font-size: 0.7rem;
   opacity: 0.8;
 }
-
-/* dropdown panel */
 
 .user-dropdown {
   position: absolute;
@@ -143,9 +127,7 @@ body {
   opacity: 0;
   transform: translateY(-4px);
   pointer-events: none;
-  transition:
-    opacity 0.18s ease-out,
-    transform 0.18s ease-out;
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
 }
 
 .user-dropdown.open {
@@ -154,17 +136,16 @@ body {
   pointer-events: auto;
 }
 
-/* red rounded rectangle button that wraps the "Log out" text */
 .logout-circle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;                 /* space between icon (if any) and text */
-  padding: 8px 14px;        /* controls size around text */
-  background-color: #e53935;/* red */
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: #e53935;
   color: #fff;
   border: none;
-  border-radius: 8px;       /* rounded square corners */
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.25);
   font-size: 0.8rem;
   cursor: pointer;
@@ -181,7 +162,6 @@ body {
   box-shadow: 0 5px 14px rgba(0, 0, 0, 0.7);
 }
 
-/* keep label inline inside the red button */
 .logout-label {
   font-size: 0.8rem;
   letter-spacing: 0.5px;
@@ -189,83 +169,93 @@ body {
   opacity: 0.9;
 }
 
-
-/* content wrapper */
-
+/* ── CONTENT ── */
 .content-wrapper {
   min-height: 100vh;
-  padding: 96px 16px 32px;
+  padding: 110px 40px 48px;
   box-sizing: border-box;
-}
-
-/* example card styling (optional enhancement) */
-
-.card {
-  max-width: 600px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 22px;
-  border-radius: 18px;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
 }
 
-/* small screens */
-
-@media (max-width: 480px) {
-  .topbar-inner {
-    padding-inline: 12px;
-  }
-
-  .topbar-left {
-    font-size: 0.8rem;
-    letter-spacing: 1.5px;
-  }
-
-  .nav-button {
-    padding-inline: 10px;
-    font-size: 0.7rem;
-  }
-
-  .user-toggle {
-    padding-inline: 10px;
-    font-size: 0.75rem;
-  }
-
-  .user-dropdown {
-    padding: 8px 10px;
-  }
+/* ── GAME GRID ── */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 24px;
 }
 
-/* Slither thumbnail */
-
-.slither-thumb {
-  width: 200px;
-  height: 200px;
-  position: absolute;
-  overflow: hidden;
+.game-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  color: #f5f5f5;
   cursor: pointer;
-  top: 100px;
-  left: 100px;
-  background-image: url("./slitherio/thumbnail.png");
 }
 
-.slither-thumb img {
+.game-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.game-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.2s ease-out;
+  transition: transform 0.25s ease;
 }
 
-.slither-thumb:hover img {
-  transform: translate(-8px, -8px);
+.game-card:hover .game-thumb {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.game-thumb-link,
-.slither-link {
-  display: inline-block;
-  text-decoration: none;
-  cursor: pointer;
+.game-card:hover .game-thumb img {
+  transform: scale(1.04);
 }
 
+.game-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+/* ── SMALL SCREENS ── */
+@media (max-width: 480px) {
+  .topbar-inner {
+    padding-inline: 12px;
+  }
+  .topbar-left {
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+  }
+  .nav-button {
+    padding-inline: 10px;
+    font-size: 0.7rem;
+  }
+  .user-toggle {
+    padding-inline: 10px;
+    font-size: 0.75rem;
+  }
+  .user-dropdown {
+    padding: 8px 10px;
+  }
+  .content-wrapper {
+    padding: 100px 20px 32px;
+  }
+  .games-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+}
