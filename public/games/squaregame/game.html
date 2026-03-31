@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gravity Squares</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        #sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .panel {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 10px;
+            padding: 10px;
+            color: #eee;
+            font-size: 13px;
+        }
+
+        .panel h3 {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            color: #e94560;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            gap: 6px;
+        }
+
+        .row label {
+            flex: 1;
+            color: #aaa;
+        }
+
+        .row input[type=range] {
+            flex: 1.2;
+        }
+
+        .row span {
+            width: 32px;
+            text-align: right;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .row input[type=number] {
+            width: 48px;
+            padding: 4px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #0f3460;
+            color: #fff;
+            text-align: center;
+        }
+
+        .row select {
+            flex: 1.2;
+            padding: 4px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background: #0f3460;
+            color: #fff;
+        }
+
+        button.btn {
+            width: 100%;
+            padding: 7px;
+            border: none;
+            border-radius: 7px;
+            background: #e94560;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 4px;
+            transition: background 0.15s;
+        }
+
+        button.btn:hover {
+            background: #c73652;
+        }
+
+        button.btn.blue {
+            background: #0f3460;
+        }
+
+        button.btn.blue:hover {
+            background: #1a4a80;
+        }
+
+        button.btn.green {
+            background: #27ae60;
+        }
+
+        button.btn.green:hover {
+            background: #1e8449;
+        }
+
+        #mathRow {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #mathRow input {
+            width: 100%;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #0f3460;
+            color: #fff;
+        }
+
+        #mathRow .mbtns {
+            display: flex;
+            gap: 5px;
+        }
+
+        #mathRow .mbtns button {
+            flex: 1;
+        }
+
+        #scoreRow {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        #scoreRow span {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        canvas {
+            background: #fff;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        #contextMenu {
+            position: fixed;
+            display: none;
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+            padding: 6px;
+            z-index: 1000;
+            min-width: 130px;
+        }
+
+        #contextMenu button {
+            display: block;
+            width: 100%;
+            margin: 0 0 5px 0;
+            padding: 7px 10px;
+            border: none;
+            border-radius: 7px;
+            background: #0f3460;
+            color: #eee;
+            cursor: pointer;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        #contextMenu button:last-child {
+            margin-bottom: 0;
+        }
+
+        #contextMenu button:hover {
+            background: #e94560;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #27ae60;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+
+        <!-- MATH QUIZ -->
+        <div class="panel">
+            <h3>🧮 Math Quiz</h3>
+            <div id="mathRow">
+                <input id="mathEquation" readonly />
+                <input id="mathAnswer" placeholder="Your answer..." />
+                <div class="mbtns">
+                    <button class="btn green" onclick="checkAnswer()">Check</button>
+                    <button class="btn blue" onclick="randomMath()">New</button>
+                </div>
+            </div>
+            <div id="scoreRow">
+                <div>Score: <span id="scoreVal">0</span></div>
+                <div>Streak: <span id="streakVal">0</span>🔥</div>
+                <div>Diff: <select id="diffSel" onchange="randomMath()"
+                        style="padding:2px;border-radius:4px;border:none;background:#0f3460;color:#fff;font-size:11px">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Med</option>
+                        <option value="hard">Hard</option>
+                    </select></div>
+            </div>
+        </div>
+
+        <!-- PHYSICS -->
+        <div class="panel">
+            <h3>⚙️ Physics</h3>
+            <div class="row">
+                <label>Gravity</label>
+                <input type="range" id="gravSlider" min="-2" max="3" step="0.1" value="1" oninput="updateGrav(this)">
+                <span id="gravVal">1.0</span>
+            </div>
+            <div class="row">
+                <label>Stiffness</label>
+                <input type="range" id="stiffSlider" min="0.01" max="0.3" step="0.01" value="0.05"
+                    oninput="updateStiff(this)">
+                <span id="stiffVal">.05</span>
+            </div>
+            <div class="row">
+                <label>Damping</label>
+                <input type="range" id="dampSlider" min="0" max="0.3" step="0.01" value="0.05"
+                    oninput="updateDamp(this)">
+                <span id="dampVal">.05</span>
+            </div>
+            <div class="row">
+                <label>Break dist</label>
+                <input type="range" id="breakSlider" min="0" max="500" step="10" value="0" oninput="updateBreak(this)">
+                <span id="breakVal">off</span>
+            </div>
+        </div>
+
+        <!-- VISUALS -->
+        <div class="panel">
+            <h3>🎨 Visuals</h3>
+            <div class="row">
+                <label>Spring color</label>
+                <select id="springColorMode">
+                    <option value="tension">Tension</option>
+                    <option value="gray">Gray</option>
+                </select>
+            </div>
+            <div class="row">
+                <label>Show springs</label>
+                <input type="checkbox" id="showSprings" checked style="width:auto">
+            </div>
+            <div class="row">
+                <label>Trails</label>
+                <input type="checkbox" id="showTrails" style="width:auto">
+            </div>
+            <div class="row">
+                <label>Labels</label>
+                <input type="checkbox" id="showLabels" style="width:auto">
+            </div>
+        </div>
+
+        <!-- PRESETS -->
+        <div class="panel">
+            <h3>🧱 Presets</h3>
+            <div class="row">
+                <label>SB Size</label>
+                <input type="number" id="sbSize" value="3" min="1" max="7" />
+            </div>
+            <button class="btn" onclick="spawnSoftbody()">Spawn Softbody</button>
+            <button class="btn blue" onclick="spawnRope()">Spawn Rope</button>
+            <button class="btn blue" onclick="spawnBridge()">Spawn Bridge</button>
+            <button class="btn blue" onclick="spawnPendulum()">Spawn Pendulum</button>
+            <button class="btn" style="background:#555;margin-top:8px" onclick="clearAll()">🗑 Clear All</button>
+        </div>
+
+    </div>
+
+    <canvas id="game" width="760" height="620"></canvas>
+    <div id="contextMenu"></div>
+    <div id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>
+        const { Engine, World, Bodies, Constraint, Body, Events } = Matter;
+
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        const engine = Engine.create();
+        const world = engine.world;
+        world.gravity.y = 1.0;
+
+        let squares = [];
+        let springs = [];
+        let trails = {}; // body.id -> [{x,y}]
+        let squareCounter = 0;
+
+        let dragging = null, dragConstraint = null;
+        let cursorPos = { x: 380, y: 310 };
+        let selBox = null; // {x1,y1,x2,y2} for selection drag
+        let selectedSquares = new Set();
+
+        let rcDownSq = null, rcDownPos = null, rcMoved = false;
+        let springStiffness = 0.05, springDamping = 0.05, springBreakDist = 0;
+
+        const contextMenu = document.getElementById("contextMenu");
+        let menuTarget = null;
+
+        // ── Walls ─────────────────────────────────────────────────────────
+        const W = 760, H = 620;
+        World.add(world, [
+            Bodies.rectangle(W / 2, 0, W, 20, { isStatic: true, label: 'wall' }),
+            Bodies.rectangle(W / 2, H, W, 20, { isStatic: true, label: 'wall' }),
+            Bodies.rectangle(0, H / 2, 20, H, { isStatic: true, label: 'wall' }),
+            Bodies.rectangle(W, H / 2, 20, H, { isStatic: true, label: 'wall' }),
+        ]);
+
+        // ── Helpers ───────────────────────────────────────────────────────
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+        function findSqAt(pos) {
+            for (let i = squares.length - 1; i >= 0; i--)
+                if (Matter.Bounds.contains(squares[i].body.bounds, pos)) return squares[i];
+            return null;
+        }
+        function findSpringAt(pos) {
+            for (let i = springs.length - 1; i >= 0; i--) {
+                const s = springs[i];
+                const a = s.bodyA.position, b = s.bodyB.position;
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const len = Math.hypot(dx, dy);
+                if (len < 1) continue;
+                // point-to-segment distance
+                const t = Math.max(0, Math.min(1, ((pos.x - a.x) * dx + (pos.y - a.y) * dy) / (len * len)));
+                const dist = Math.hypot(pos.x - (a.x + t * dx), pos.y - (a.y + t * dy));
+                if (dist < 8) return i;
+            }
+            return -1;
+        }
+        function pdist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+        function showToast(msg, color = "#27ae60") {
+            const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.style.background = color;
+            t.style.opacity = "1";
+            clearTimeout(t._tid);
+            t._tid = setTimeout(() => t.style.opacity = "0", 1800);
+        }
+
+        // ── Square creation ───────────────────────────────────────────────
+        function createSquare(x, y, isStatic = false) {
+            const body = Bodies.rectangle(x, y, 50, 50, {
+                restitution: 0.2, friction: 0.3, isStatic,
+                label: 'sq' + (++squareCounter)
+            });
+            const sq = { body, frozen: isStatic, id: squareCounter };
+            squares.push(sq);
+            trails[body.id] = [];
+            World.add(world, body);
+            return sq;
+        }
+
+        function removeSquare(sq) {
+            if (dragging === sq) endDrag();
+            springs = springs.filter(s => {
+                if (s.bodyA === sq.body || s.bodyB === sq.body) {
+                    World.remove(world, s); return false;
+                }
+                return true;
+            });
+            delete trails[sq.body.id];
+            World.remove(world, sq.body);
+            squares = squares.filter(s => s !== sq);
+            selectedSquares.delete(sq);
+        }
+
+        function removeSpring(idx) {
+            World.remove(world, springs[idx]);
+            springs.splice(idx, 1);
+        }
+
+        function clearAll() {
+            [...squares].forEach(sq => removeSquare(sq));
+            springs = [];
+            selectedSquares.clear();
+        }
+
+        // ── Spring creation ───────────────────────────────────────────────
+        function makeSpring(sqA, sqB, len = 100) {
+            const s = Constraint.create({
+                bodyA: sqA.body, bodyB: sqB.body,
+                stiffness: springStiffness, damping: springDamping, length: len,
+            });
+            springs.push(s);
+            World.add(world, s);
+            return s;
+        }
+
+        // ── Drag ──────────────────────────────────────────────────────────
+        function beginDrag(sq, pos) {
+            dragging = sq;
+            Body.setVelocity(sq.body, { x: 0, y: 0 });
+            Body.setAngularVelocity(sq.body, 0);
+            dragConstraint = Constraint.create({
+                pointA: { x: pos.x, y: pos.y },
+                bodyB: sq.body, pointB: { x: 0, y: 0 },
+                stiffness: 0.9, damping: 0.15, length: 0,
+            });
+            World.add(world, dragConstraint);
+        }
+        function endDrag() {
+            if (dragConstraint) { World.remove(world, dragConstraint); dragConstraint = null; }
+            dragging = null;
+        }
+
+        // ── Context menu ──────────────────────────────────────────────────
+        function showMenu(sq, cx, cy) {
+            menuTarget = sq;
+            const isSel = selectedSquares.size > 1 && selectedSquares.has(sq);
+            contextMenu.innerHTML = `
+    <button id="cmDelete">🗑 Delete${isSel ? ` (${selectedSquares.size})` : ''}</button>
+    <button id="cmFreeze">${sq.frozen ? "▶ Unfreeze" : "❄ Freeze"}${isSel ? ` (${selectedSquares.size})` : ''}</button>
+    <button id="cmPin">📌 Pin to ceiling</button>
+  `;
+            contextMenu.style.left = cx + "px";
+            contextMenu.style.top = cy + "px";
+            contextMenu.style.display = "block";
+
+            document.getElementById("cmDelete").onclick = () => {
+                const targets = (isSel ? [...selectedSquares] : [sq]);
+                targets.forEach(s => removeSquare(s));
+                hideMenu();
+            };
+            document.getElementById("cmFreeze").onclick = () => {
+                const targets = (isSel ? [...selectedSquares] : [sq]);
+                const newState = !sq.frozen;
+                targets.forEach(s => { s.frozen = newState; Body.setStatic(s.body, newState); });
+                hideMenu();
+            };
+            document.getElementById("cmPin").onclick = () => {
+                const pin = Constraint.create({
+                    pointA: { x: sq.body.position.x, y: 0 },
+                    bodyB: sq.body, pointB: { x: 0, y: 0 },
+                    stiffness: 0.9, damping: 0.1, length: sq.body.position.y,
+                });
+                springs.push(pin);
+                World.add(world, pin);
+                hideMenu();
+            };
+        }
+        function hideMenu() {
+            contextMenu.style.display = "none";
+            menuTarget = null;
+        }
+
+        // ── Presets ───────────────────────────────────────────────────────
+        function spawnSoftbody() {
+            const size = Math.max(1, Math.min(7, parseInt(document.getElementById("sbSize").value) || 3));
+            const gap = 55, sx = W / 2 - (size * gap) / 2 + gap / 2, sy = 60;
+            const grid = [];
+            for (let r = 0; r < size; r++) {
+                grid[r] = [];
+                for (let c = 0; c < size; c++) grid[r][c] = createSquare(sx + c * gap, sy + r * gap);
+            }
+            for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+                if (c + 1 < size) makeSpring(grid[r][c], grid[r][c + 1], 100);
+                if (r + 1 < size) makeSpring(grid[r][c], grid[r + 1][c], 100);
+                if (r + 1 < size && c + 1 < size) makeSpring(grid[r][c], grid[r + 1][c + 1], 141);
+                if (r + 1 < size && c - 1 >= 0) makeSpring(grid[r][c], grid[r + 1][c - 1], 141);
+            }
+        }
+
+        function spawnRope() {
+            const n = 8, gap = 50, sx = W / 2 - (n * gap) / 2;
+            const nodes = [];
+            for (let i = 0; i < n; i++) nodes.push(createSquare(sx + i * gap, 80, i === 0));
+            nodes[0].frozen = true;
+            for (let i = 0; i < n - 1; i++) makeSpring(nodes[i], nodes[i + 1], 55);
+        }
+
+        function spawnBridge() {
+            const n = 7, gap = 80, sx = W / 2 - (n * gap) / 2;
+            const nodes = [];
+            for (let i = 0; i < n; i++) nodes.push(createSquare(sx + i * gap, 200, i === 0 || i === n - 1));
+            nodes[0].frozen = true; nodes[n - 1].frozen = true;
+            for (let i = 0; i < n - 1; i++) makeSpring(nodes[i], nodes[i + 1], 85);
+        }
+
+        function spawnPendulum() {
+            const anchor = createSquare(W / 2, 60, true);
+            anchor.frozen = true;
+            const bob = createSquare(W / 2 + 150, 200);
+            makeSpring(anchor, bob, 160);
+        }
+
+        // ── Physics sliders ───────────────────────────────────────────────
+        function updateGrav(el) {
+            world.gravity.y = parseFloat(el.value);
+            document.getElementById("gravVal").textContent = parseFloat(el.value).toFixed(1);
+        }
+        function updateStiff(el) {
+            springStiffness = parseFloat(el.value);
+            document.getElementById("stiffVal").textContent = parseFloat(el.value).toFixed(2);
+        }
+        function updateDamp(el) {
+            springDamping = parseFloat(el.value);
+            document.getElementById("dampVal").textContent = parseFloat(el.value).toFixed(2);
+        }
+        function updateBreak(el) {
+            springBreakDist = parseFloat(el.value);
+            document.getElementById("breakVal").textContent = el.value == 0 ? "off" : el.value + "px";
+        }
+
+        // ── Spring break check ────────────────────────────────────────────
+        function checkSpringBreaks() {
+            if (!springBreakDist) return;
+            springs = springs.filter(s => {
+                const d = pdist(s.bodyA.position, s.bodyB.position);
+                if (d > springBreakDist + s.length) {
+                    World.remove(world, s);
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        // ── Trail update ──────────────────────────────────────────────────
+        function updateTrails() {
+            if (!document.getElementById("showTrails").checked) return;
+            for (const sq of squares) {
+                const t = trails[sq.body.id];
+                if (!t) continue;
+                t.push({ x: sq.body.position.x, y: sq.body.position.y });
+                if (t.length > 30) t.shift();
+            }
+        }
+
+        // ── Mouse ─────────────────────────────────────────────────────────
+        let lmbDown = false, lmbStart = null, lmbMoved = false;
+
+        canvas.addEventListener("mousemove", (e) => {
+            cursorPos = getPos(e);
+            if (dragConstraint) {
+                dragConstraint.pointA.x = cursorPos.x;
+                dragConstraint.pointA.y = cursorPos.y;
+            }
+            if (rcDownPos && pdist(cursorPos, rcDownPos) > 5) rcMoved = true;
+            if (lmbDown && lmbStart && pdist(cursorPos, lmbStart) > 5) lmbMoved = true;
+        });
+
+        canvas.addEventListener("mousedown", (e) => {
+            const pos = getPos(e);
+            if (e.button === 0) {
+                hideMenu();
+                lmbDown = true; lmbStart = pos; lmbMoved = false;
+                const sq = findSqAt(pos);
+                if (sq) {
+                    if (!e.shiftKey) {
+                        if (!selectedSquares.has(sq)) selectedSquares.clear();
+                        selectedSquares.add(sq);
+                    } else {
+                        selectedSquares.has(sq) ? selectedSquares.delete(sq) : selectedSquares.add(sq);
+                    }
+                    beginDrag(sq, pos);
+                } else if (!e.shiftKey) {
+                    selectedSquares.clear();
+                }
+            }
+            if (e.button === 2) {
+                rcDownSq = findSqAt(pos);
+                rcDownPos = pos;
+                rcMoved = false;
+            }
+        });
+
+        canvas.addEventListener("mouseup", (e) => {
+            if (e.button === 0) {
+                if (!lmbMoved && !findSqAt(getPos(e))) {
+                    // Click on empty — check spring click
+                    const idx = findSpringAt(getPos(e));
+                    if (idx >= 0) removeSpring(idx);
+                }
+                if (lmbMoved && !dragging && selBox) {
+                    // finalize selection box
+                    const x1 = Math.min(selBox.x1, selBox.x2), x2 = Math.max(selBox.x1, selBox.x2);
+                    const y1 = Math.min(selBox.y1, selBox.y2), y2 = Math.max(selBox.y1, selBox.y2);
+                    selectedSquares.clear();
+                    for (const sq of squares) {
+                        const p = sq.body.position;
+                        if (p.x >= x1 && p.x <= x2 && p.y >= y1 && p.y <= y2) selectedSquares.add(sq);
+                    }
+                }
+                endDrag();
+                selBox = null;
+                lmbDown = false; lmbMoved = false;
+            }
+        });
+
+        canvas.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            const pos = getPos(e);
+            const sqUp = findSqAt(pos);
+
+            if (rcDownSq) {
+                if (rcMoved && sqUp && sqUp !== rcDownSq) {
+                    makeSpring(rcDownSq, sqUp, 100);
+                } else if (!rcMoved) {
+                    showMenu(rcDownSq, e.clientX, e.clientY);
+                }
+            } else if (!rcMoved) {
+                // Right-click on spring → delete it
+                const idx = findSpringAt(pos);
+                if (idx >= 0) removeSpring(idx);
+                else createSquare(pos.x, pos.y);
+            }
+
+            rcDownSq = null; rcDownPos = null; rcMoved = false;
+        });
+
+        canvas.addEventListener("dblclick", (e) => {
+            const pos = getPos(e);
+            const sq = findSqAt(pos);
+            if (sq) {
+                // Pin to ceiling
+                const pin = Constraint.create({
+                    pointA: { x: sq.body.position.x, y: 0 },
+                    bodyB: sq.body, pointB: { x: 0, y: 0 },
+                    stiffness: 0.9, damping: 0.1, length: sq.body.position.y,
+                });
+                springs.push(pin);
+                World.add(world, pin);
+                showToast("📌 Pinned to ceiling!");
+            }
+        });
+
+        document.addEventListener("mousedown", (e) => {
+            if (!contextMenu.contains(e.target)) hideMenu();
+        });
+
+        // Selection box tracking
+        canvas.addEventListener("mousemove", (e) => {
+            if (lmbDown && lmbMoved && !dragging) {
+                selBox = { x1: lmbStart.x, y1: lmbStart.y, x2: cursorPos.x, y2: cursorPos.y };
+            }
+        });
+
+        // ── Spring tension color ──────────────────────────────────────────
+        function springColor(s) {
+            const mode = document.getElementById("springColorMode").value;
+            if (mode === "gray") return "#888";
+            const d = pdist(s.bodyA.position, s.bodyB.position);
+            const stretch = (d - s.length) / Math.max(s.length, 1);
+            if (stretch > 0.1) {
+                // stretched → red
+                const t = Math.min(stretch / 0.5, 1);
+                return `rgb(${Math.round(136 + 119 * t)},${Math.round(136 - 136 * t)},${Math.round(136 - 136 * t)})`;
+            } else if (stretch < -0.1) {
+                // compressed → blue
+                const t = Math.min(-stretch / 0.5, 1);
+                return `rgb(${Math.round(136 - 136 * t)},${Math.round(136 - 136 * t)},${Math.round(136 + 119 * t)})`;
+            }
+            return "#888";
+        }
+
+        // ── Draw ──────────────────────────────────────────────────────────
+        function drawSpring(a, b, color, width) {
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 1) return;
+            const segs = Math.max(8, Math.floor(d / 12));
+            const px = -dy / d, py = dx / d;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            for (let i = 0; i <= segs; i++) {
+                const t = i / segs;
+                const wave = (i > 0 && i < segs) ? Math.sin(t * Math.PI * segs) * 6 : 0;
+                const x = a.x + dx * t + px * wave, y = a.y + dy * t + py * wave;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function draw() {
+            // Trail fade
+            if (document.getElementById("showTrails").checked) {
+                ctx.fillStyle = "rgba(255,255,255,0.18)";
+                ctx.fillRect(0, 0, W, H);
+            } else {
+                ctx.clearRect(0, 0, W, H);
+            }
+
+            // Springs
+            if (document.getElementById("showSprings").checked) {
+                for (const s of springs) {
+                    const a = s.bodyA.position, b = s.bodyB.position;
+                    // Distinguish pin constraints (pointA is wall)
+                    const isPин = !s.bodyA.label || s.bodyA.label === 'wall';
+                    drawSpring(
+                        s.pointA && !s.bodyA.label?.startsWith('sq') ? s.pointA : a,
+                        b, springColor(s), 2.5
+                    );
+                }
+            }
+
+            // Trail dots
+            if (document.getElementById("showTrails").checked) {
+                for (const sq of squares) {
+                    const t = trails[sq.body.id];
+                    if (!t) continue;
+                    for (let i = 0; i < t.length; i++) {
+                        const alpha = i / t.length * 0.5;
+                        ctx.fillStyle = `rgba(52,152,219,${alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(t[i].x, t[i].y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Squares
+            const showLabels = document.getElementById("showLabels").checked;
+            for (const sq of squares) {
+                const { x, y } = sq.body.position;
+                const isSel = selectedSquares.has(sq);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(sq.body.angle);
+                ctx.fillStyle = sq.frozen ? "#85c1e9" : isSel ? "#f39c12" : "#3498db";
+                ctx.strokeStyle = sq.frozen ? "#226699" : isSel ? "#d68910" : "#226699";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.rect(-25, -25, 50, 50);
+                ctx.fill();
+                ctx.stroke();
+                if (showLabels) {
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "bold 11px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(sq.id, 0, 0);
+                }
+                ctx.restore();
+            }
+
+            // Drag spring
+            if (dragging) drawSpring(dragging.body.position, cursorPos, "#007bff", 4);
+
+            // RC preview
+            if (rcDownSq && rcMoved) {
+                const { x, y } = rcDownSq.body.position;
+                ctx.save(); ctx.translate(x, y); ctx.rotate(rcDownSq.body.angle);
+                ctx.strokeStyle = "#e94560"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.rect(-28, -28, 56, 56); ctx.stroke();
+                ctx.restore();
+                drawSpring(rcDownSq.body.position, cursorPos, "#aaa", 2);
+            }
+
+            // Selection box
+            if (selBox) {
+                ctx.strokeStyle = "#f39c12";
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([5, 4]);
+                ctx.strokeRect(
+                    Math.min(selBox.x1, selBox.x2), Math.min(selBox.y1, selBox.y2),
+                    Math.abs(selBox.x2 - selBox.x1), Math.abs(selBox.y2 - selBox.y1)
+                );
+                ctx.setLineDash([]);
+            }
+
+            checkSpringBreaks();
+            updateTrails();
+            Engine.update(engine, 1000 / 60);
+            requestAnimationFrame(draw);
+        }
+
+        // Init
+        createSquare(200, 150);
+        createSquare(500, 150);
+        draw();
+
+        // ── Math quiz ─────────────────────────────────────────────────────
+        let answer, score = 0, streak = 0;
+        const mathEq = document.getElementById("mathEquation");
+        const mathAns = document.getElementById("mathAnswer");
+
+        function randomMath() {
+            const diff = document.getElementById("diffSel").value;
+            let q, a;
+            const ops = diff === "easy" ? ["+", "-"] :
+                diff === "medium" ? ["+", "-", "×"] :
+                    ["+", "-", "×", "÷"];
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            const max = diff === "easy" ? 10 : diff === "medium" ? 12 : 20;
+            let x = Math.floor(Math.random() * max) + 1;
+            let y = Math.floor(Math.random() * max) + 1;
+            if (op === "÷") { a = y; x = a * y; }  // ensure integer
+            switch (op) {
+                case "+": a = x + y; q = `${x} + ${y} = ?`; break;
+                case "-": if (x < y) [x, y] = [y, x]; a = x - y; q = `${x} − ${y} = ?`; break;
+                case "×": a = x * y; q = `${x} × ${y} = ?`; break;
+                case "÷": q = `${x} ÷ ${y} = ?`; break;
+            }
+            answer = a;
+            mathEq.value = q;
+            mathAns.value = "";
+        }
+
+        function checkAnswer() {
+            const val = parseInt(mathAns.value);
+            if (val === answer) {
+                score++;
+                streak++;
+                document.getElementById("scoreVal").textContent = score;
+                document.getElementById("streakVal").textContent = streak;
+                mathAns.value = "✓ Correct!";
+                showToast(`✓ Correct! Streak: ${streak} 🔥`);
+                // Reward: softbody on streak milestone, else single cube
+                if (streak % 5 === 0) {
+                    document.getElementById("sbSize").value = Math.min(streak / 5 + 1, 5);
+                    spawnSoftbody();
+                    showToast(`🎉 Streak ${streak}! Softbody spawned!`);
+                } else {
+                    createSquare(150 + Math.random() * 460, 40);
+                }
+            } else {
+                streak = 0;
+                document.getElementById("streakVal").textContent = "0";
+                mathAns.value = "✗ Wrong!";
+                showToast("✗ Wrong!", "#e94560");
+            }
+            setTimeout(() => { mathAns.value = ""; randomMath(); }, 1200);
+        }
+
+        mathAns.addEventListener("keydown", e => { if (e.key === "Enter") checkAnswer(); });
+        randomMath();
+    </script>
+</body>
+
+</html>
